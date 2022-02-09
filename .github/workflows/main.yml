@@ -4,13 +4,23 @@ on:
   push:
     branches: [ main ]
 jobs:
-  build:
+  multi-line:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
       - name: run multi-line script
         run: | 
           echo Directory
           ls -l
           echo Python
-          python -v
+          python -V
+          echo Create file
+          touch concat.yaml
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v8
+        with:
+          author_name: Troubleshoot Spec Bot
+          author_email: troubleshoot-spec-bot@replicated.com
+          message: 'Concated Spec'
+ 
