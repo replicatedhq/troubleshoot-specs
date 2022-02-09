@@ -1,0 +1,16 @@
+name: Concat Specs
+
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: run multi-line script
+        run: | 
+          echo Directory
+          ls -l
+          echo Python
+          python -v
