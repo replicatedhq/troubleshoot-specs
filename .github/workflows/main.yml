@@ -4,15 +4,13 @@ on:
   push:
     branches: [ main ]
 jobs:
-  multi-line:
+  concat-specs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: run multi-line script
+      - name: run concat script
         run: | 
-          echo Install PyYaml
-          pip install pyyaml 
           echo Concact YAMLs
           python ./concat.py
       - name: Commit changes

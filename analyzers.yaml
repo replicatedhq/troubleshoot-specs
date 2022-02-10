@@ -4,6 +4,13 @@ metadata:
   name: collector-sample
 spec:
   analyzers:
+    - clusterVersion:
+        outcomes:
+          - fail:
+              when: "< 1.16.0"
+              message: The Admin Console requires at least Kubernetes 1.16.0
+          - pass:
+              message: Your cluster meets the recommended and required versions of Kubernetes
     - containerRuntime:
         outcomes:
           - fail:
