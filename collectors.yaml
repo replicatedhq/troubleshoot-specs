@@ -5,6 +5,7 @@ metadata:
 spec:
   collectors:
     - clusterInfo: {}
+    - clusterResources: {}
     - ceph: {}
     - longhorn: {}
     - exec:
