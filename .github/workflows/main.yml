@@ -11,12 +11,10 @@ jobs:
         uses: actions/checkout@v2
       - name: run multi-line script
         run: | 
-          echo Directory
-          ls -l
-          echo Python
-          python -V
-          echo Create file
-          touch concat.yaml
+          echo Install PyYaml
+          pip install pyyaml 
+          echo Concact YAMLs
+          python ./concat.py
       - name: Commit changes
         uses: EndBug/add-and-commit@v8
         with:
