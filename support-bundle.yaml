@@ -75,6 +75,7 @@ spec:
           message: All nodes are online.
   collectors:
   - clusterInfo: {}
+  - clusterResources: {}
   - ceph: {}
   - longhorn: {}
   - exec:
