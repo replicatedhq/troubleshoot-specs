@@ -1,7 +1,7 @@
 apiVersion: troubleshoot.sh/v1beta2
 kind: SupportBundle
 metadata:
-  name: collector-sample
+  name: analyzer-sample
 spec:
   analyzers:
     - clusterVersion:
