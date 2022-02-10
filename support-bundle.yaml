@@ -11,13 +11,6 @@ spec:
           when: < 1.16.0
       - pass:
           message: Your cluster meets the recommended and required versions of Kubernetes
-  - clusterVersion:
-      outcomes:
-      - fail:
-          message: The Admin Console requires at least Kubernetes 1.16.0
-          when: < 1.16.0
-      - pass:
-          message: Your cluster meets the recommended and required versions of Kubernetes
   - containerRuntime:
       outcomes:
       - fail:
