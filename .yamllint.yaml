@@ -1,1 +1,7 @@
-404: Not Found
+extends: default
+
+rules:
+  line-length: disable
+  truthy: disable
+  indentation:
+    indent-sequences: consistent
