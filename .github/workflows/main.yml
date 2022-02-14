@@ -2,7 +2,8 @@ name: Concat Specs
 
 on:
   push:
-    branches: [ main ]
+    tags:
+      - "*.*.*"
 jobs:
   concat-specs:
     runs-on: ubuntu-latest
@@ -13,10 +14,13 @@ jobs:
         run: | 
           echo Concact YAMLs
           python ./concat.py
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v8
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@v3
         with:
-          author_name: Troubleshoot Spec Bot
-          author_email: troubleshoot-spec-bot@replicated.com
-          message: 'Concated Spec'
- 
+          file_or_dir: *.y*ml
+          config_file: .yamllint.yaml
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "./support-bundle.yaml"
