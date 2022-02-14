@@ -2,8 +2,9 @@ name: Concat Specs
 
 on:
   push:
-    tags:
-      - "*.*.*"
+		branches: [ main ]
+    #tags:
+    #  - "*.*.*"
 jobs:
   concat-specs:
     runs-on: ubuntu-latest
@@ -19,8 +20,8 @@ jobs:
         with:
           file_or_dir: "./*.y*ml"
           config_file: .yamllint.yaml
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          artifacts: "./support-bundle.yaml"
+      #- name: Create Release
+      #  uses: ncipollo/release-action@v1
+      #  with:
+      #    allowUpdates: true
+      #    artifacts: "./support-bundle.yaml"
