@@ -2,7 +2,7 @@ name: Concat Specs
 
 on:
   push:
-		branches: [ main ]
+    branches: [ main ]
     #tags:
     #  - "*.*.*"
 jobs:
