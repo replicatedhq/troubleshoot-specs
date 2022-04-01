@@ -74,3 +74,15 @@ spec:
           - fail:
               when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
               message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.
+    - textAnalyze:
+        checkName: NFS Client Package
+        fileName: cluster-resources/events/*.json
+        regex: 'bad option; for several filesystems \(e\.g\. nfs, cifs\) you might need a \/sbin\/mount\..+type.+ helper program\.'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "NFS client is not installed. Refer to [documentation](https://docs.replicated.com/enterprise/snapshots-configuring-nfs) for steps on how to configure NFS snapshots."
+              uri: "https://docs.replicated.com/enterprise/snapshots-configuring-nfs"
+          - pass:
+              when: "false"
+              message: "NFS client is installed."
