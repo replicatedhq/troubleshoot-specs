@@ -1,0 +1,67 @@
+# Spec to gather additional information about cpu, memory, and disk on the system to identify potential resource contention and performance issues
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: resource-contention
+spec:
+  hostCollectors:
+    - cpu: {}
+    - memory: {}
+    - run:
+        collectorName: "uptime"
+        command: "uptime"
+        args: []
+    - run: 
+        collectorName: "top"
+        command: "top"
+        args: ["-b", "-n", "1"]
+    - run: 
+        collectorName: "df"
+        command: "df"
+        args: ["-h"]
+    - run: 
+        collectorName: "iostat"
+        command: "iostat"
+        args: []
+    - run: 
+        collectorName: "journalctl-dmesg"
+        command: "journalctl"
+        args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
+    - filesystemPerformance:
+        collectorName: filesystem-latency-two-minute-benchmark
+        timeout: 2m
+        directory: /var/lib/etcd
+        fileSize: 22Mi
+        operationSizeBytes: 2300
+        datasync: true
+        enableBackgroundIOPS: true
+        backgroundIOPSWarmupSeconds: 10
+        backgroundWriteIOPS: 300
+        backgroundWriteIOPSJobs: 6
+        backgroundReadIOPS: 50
+        backgroundReadIOPSJobs: 1
+  hostAnalyzers:
+    - cpu:
+        checkName: "Number of CPUs"
+        outcomes:
+          - warn:
+              when: "count < 4"
+              message: At least 4 CPU cores are recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
+          - pass:
+              message: This server has at least 4 CPU cores
+    - memory:
+        checkName: "Amount of Memory"
+        outcomes:
+          - warn:
+              when: "< 8G"
+              message: At least 8G of memory is recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
+          - pass:
+              message: The system has at least 8G of memory
+    - filesystemPerformance:
+        collectorName: filesystem-latency-two-minute-benchmark
+        outcomes:
+          - pass:
+              when: "p99 < 10ms"
+              message: "Write latency is ok (p99 target < 10ms)"
+          - warn:
+              message: "Write latency is high. p99 target >= 10ms)"

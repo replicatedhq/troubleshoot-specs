@@ -2,11 +2,8 @@
 
 Troubleshoot specs for using when running with `support-bundle`.
 
-# Folder Structure
-`analyzers.yaml`: Analyzers could be run on any support bundle as long as you have the bundle tarball.
+## Folder Structure
 
-`collectors.yaml`: Collectors depending on the level of access they need can be run either from CLI or need to be injected via a secret so they are parameterized and have proper access to run it.
+`host`: Host Collectors and Analyzers to troubleshoot a kURL cluster. Useful when you need to gather information that isn't available with `in-cluster` collectors or if Kubernetes is offline. When run these will generate a support bundle with host level information about the host where the binary was executed.
 
-# GitHub Action
-
-The action runs a workflow that concats the various analyzer and collector yaml files into a single troubleshoot spec `support-bundle.yaml` using `concat.py`.
+`in-cluster`: Standard Collectors and Analyzers that can be used to retreive information from a Kubernetes cluster

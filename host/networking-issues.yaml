@@ -1,0 +1,184 @@
+# Spec to identify issues with networking on the host in a non-airgapped deployment
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: networking-issues-non-airgap
+spec:
+  hostCollectors:
+    - ipv4Interfaces: {}
+    - certificate:
+        collectorName: k8s-api-keypair
+        certificatePath: /etc/kubernetes/pki/apiserver.crt
+        keyPath: /etc/kubernetes/pki/apiserver.key
+    - certificate:
+        collectorName: etcd-keypair
+        certificatePath: /etc/kubernetes/pki/etcd/server.crt
+        keyPath: /etc/kubernetes/pki/etcd/server.key
+    - http:
+        collectorName: curl-k8s-api-6443
+        get:
+          url: https://localhost:6443
+          insecureSkipVerify: true
+    - http:
+        collectorName: curl-api-replicated-com
+        get:
+          url: https://api.replicated.com/healthz
+    - http:
+        collectorName: curl-get-replicated-com
+        get:
+          url: https://get.replicated.com/healthz
+    - http:
+        collectorName: curl-registry-replicated-com
+        get:
+          url: https://registry.replicated.com/healthz
+    - http:
+        collectorName: curl-proxy-replicated-com
+        get:
+          url: https://proxy.replicated.com/healthz
+    - http:
+        collectorName: curl-k8s-kurl-sh
+        get:
+          url: https://k8s.kurl.sh/healthz
+    - http:
+        collectorName: curl-replicated-app
+        get:
+          url: https://replicated.app/healthz
+    - run: 
+        collectorName: "sysctl"
+        command: "sysctl"
+        args: ["-a"]
+    - run: 
+        collectorName: "iptables"
+        command: "iptables"
+        args: ["-L", "-v"]
+    - run: 
+        collectorName: "netstat-route-table"
+        command: "netstat"
+        args: ["-r", "-n"]
+    - run: 
+        collectorName: "netstat-ports"
+        command: "netstat"
+        args: ["-t", "-u", "-l", "-p", "-n"]
+    - run: 
+        collectorName: "systemctl-firewalld-status"
+        command: "systemctl"
+        args: ["status", "firewalld"]
+    - run: 
+        collectorName: "journalctl-dmesg"
+        command: "journalctl"
+        args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
+  hostAnalyzers:
+    - certificate:
+        collectorName: k8s-api-keypair
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Certificate key pair not found in /etc/kubernetes/pki/apiserver.*
+          - fail:
+              when: "key-pair-switched"
+              message: Cert and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Cert and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Certificate key pair is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Certificate key pair is valid
+    - certificate:
+        collectorName: etcd-keypair
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Certificate key pair not found in /etc/kubernetes/pki/etcd/server.*
+          - fail:
+              when: "key-pair-switched"
+              message: Cert and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Cert and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Certificate key pair is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Certificate key pair is valid
+    - http:
+        checkName: curl-k8s-api-6443
+        collectorName: curl-k8s-api-6443
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://localhost:6443/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://localhost:6443/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-api-replicated-com
+        collectorName: curl-api-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://api.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://api.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-registry-replicated-com
+        collectorName: curl-registry-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://registry.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://registry.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-proxy-replicated-com
+        collectorName: curl-proxy-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://proxy.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://proxy.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-k8s-kurl-sh
+        collectorName: curl-k8s-kurl-sh
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://k8s.kurl.sh/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://k8s.kurl.sh/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-replicated-app
+        collectorName: curl-replicated-app
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://replicated.app/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://replicated.app/healthz
+          - warn:
+              message: "Unexpected response"
