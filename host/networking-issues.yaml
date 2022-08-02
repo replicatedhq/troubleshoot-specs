@@ -43,27 +43,27 @@ spec:
         collectorName: curl-replicated-app
         get:
           url: https://replicated.app/healthz
-    - run: 
+    - run:
         collectorName: "sysctl"
         command: "sysctl"
         args: ["-a"]
-    - run: 
+    - run:
         collectorName: "iptables"
         command: "iptables"
         args: ["-L", "-v"]
-    - run: 
+    - run:
         collectorName: "netstat-route-table"
         command: "netstat"
         args: ["-r", "-n"]
-    - run: 
+    - run:
         collectorName: "netstat-ports"
         command: "netstat"
         args: ["-t", "-u", "-l", "-p", "-n"]
-    - run: 
+    - run:
         collectorName: "systemctl-firewalld-status"
         command: "systemctl"
         args: ["status", "firewalld"]
-    - run: 
+    - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
