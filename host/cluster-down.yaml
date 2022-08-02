@@ -58,73 +58,73 @@ spec:
         collectorName: "uname"
         command: "uname"
         args: ["-a"]
-    - run: 
+    - run:
         collectorName: "df"
         command: "df"
         args: ["-h"]
-    - run: 
+    - run:
         collectorName: "iostat"
         command: "iostat"
         args: []
-    - run: 
+    - run:
         collectorName: "sestatus"
         command: "sestatus"
         args: []
-    - run: 
+    - run:
         collectorName: "apparmor-status"
         command: "apparmor_status"
         args: []
-    - run: 
+    - run:
         collectorName: "docker-info"
         command: "docker"
         args: ["info"]
-    - run: 
+    - run:
         collectorName: "crictl-info"
         command: "crictl"
         args: ["info"]
-    - run: 
+    - run:
         collectorName: "crictl-ps"
         command: "crictl"
         args: ["ps", "-a"]
-    - run: 
+    - run:
         collectorName: "docker-ps"
         command: "docker"
         args: ["ps", "-a"]
-    - run: 
+    - run:
         collectorName: "iptables"
         command: "iptables"
         args: ["-L", "-v"]
     # Systemctl service statuses for CRI, Kubelet, and Firewall
-    - run: 
+    - run:
         collectorName: "systemctl-firewalld-status"
         command: "systemctl"
         args: ["status", "firewalld"]
-    - run: 
+    - run:
         collectorName: "systemctl-docker-status"
         command: "systemctl"
         args: ["status", "docker"]
-    - run: 
+    - run:
         collectorName: "systemctl-kubelet-status"
         command: "systemctl"
         args: ["status", "kubelet"]
-    - run: 
+    - run:
         collectorName: "systemctl-containerd-status"
         command: "systemctl"
         args: ["status", "containerd"]
     # Logs for CRI, Kubelet, Kernel
-    - run: 
+    - run:
         collectorName: "journalctl-containerd"
         command: "journalctl"
         args: ["-u", "containerd", "--no-pager", "-S", "1 day ago"]
-    - run: 
+    - run:
         collectorName: "journalctl-kubelet"
         command: "journalctl"
         args: ["-u", "kubelet", "--no-pager", "-S", "1 day ago"]
-    - run: 
+    - run:
         collectorName: "journalctl-docker"
         command: "journalctl"
         args: ["-u", "docker", "--no-pager", "-S", "1 day ago"]
-    - run: 
+    - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
@@ -190,21 +190,21 @@ spec:
     - time:
         checkName: "ntp-status"
         outcomes:
-            - fail:
-                when: "ntp == unsynchronized+inactive"
-                message: "System clock is not synchronized"
-            - warn:
-                when: "ntp == unsynchronized+active"
-                message: System clock not yet synchronized                
-            - pass:
-                when: "ntp == synchronized+active"
-                message: "System clock is synchronized"
-            - warn: 
-                when: "timezone != UTC"
-                message: "Non UTC timezone can interfere with system function"
-            - pass:
-                when: "timezone == UTC"
-                message: "Timezone is set to UTC"
+          - fail:
+              when: "ntp == unsynchronized+inactive"
+              message: "System clock is not synchronized"
+          - warn:
+              when: "ntp == unsynchronized+active"
+              message: System clock not yet synchronized
+          - pass:
+              when: "ntp == synchronized+active"
+              message: "System clock is synchronized"
+          - warn:
+              when: "timezone != UTC"
+              message: "Non UTC timezone can interfere with system function"
+          - pass:
+              when: "timezone == UTC"
+              message: "Timezone is set to UTC"
     - diskUsage:
         checkName: "root"
         collectorName: "root"

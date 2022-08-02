@@ -11,19 +11,19 @@ spec:
         collectorName: "uptime"
         command: "uptime"
         args: []
-    - run: 
+    - run:
         collectorName: "top"
         command: "top"
         args: ["-b", "-n", "1"]
-    - run: 
+    - run:
         collectorName: "df"
         command: "df"
         args: ["-h"]
-    - run: 
+    - run:
         collectorName: "iostat"
         command: "iostat"
         args: []
-    - run: 
+    - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
