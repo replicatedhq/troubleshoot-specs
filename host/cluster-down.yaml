@@ -27,6 +27,9 @@ spec:
         collectorName: root
         path: /
     - diskUsage:
+        collectorName: tmp
+        path: /tmp
+    - diskUsage:
         collectorName: var-lib-kubelet
         path: /var/lib/kubelet
     - diskUsage:
@@ -211,7 +214,7 @@ spec:
         outcomes:
           - fail:
               when: "total < 40Gi"
-              message: The disk containing directory /var/lib/kubelet has less than 40Gi of total space
+              message: The disk containing directory / has less than 40Gi of total space
           - warn:
               when: "used/total > 80%"
               message: The disk containing directory / is more than 80% full
@@ -220,6 +223,21 @@ spec:
               message: The disk containing directory / has less than 10Gi of disk space available
           - pass:
               message: The disk containing directory / has sufficient space
+    - diskUsage:
+        checkName: "tmp"
+        collectorName: "tmp"
+        outcomes:
+          - warn:
+              when: "total < 8Gi"
+              message: The disk containing directory /tmp has less than 8Gi of total space
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /tmp is more than 80% full
+          - warn:
+              when: "available < 2Gi"
+              message: The disk containing directory /tmp has less than 2Gi of disk space available
+          - pass:
+              message: The disk containing directory /tmp has sufficient space
     - diskUsage:
         checkName: "var-lib-kubelet"
         collectorName: "var-lib-kubelet"
