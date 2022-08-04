@@ -259,7 +259,7 @@ spec:
           - pass:
               message: Weave is ready
         regex: '"Ready": true'
-     - textAnalyze:
+    - textAnalyze:
         checkName: Weave IP Allocation
         exclude: ""
         ignoreIfNoFiles: true
