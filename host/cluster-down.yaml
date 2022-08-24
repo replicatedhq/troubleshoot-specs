@@ -52,6 +52,10 @@ spec:
         get:
           url: https://localhost:6443
           insecureSkipVerify: true
+    - http:
+        collectorName: curl-etcd-api-2379
+        get:
+          url: http://localhost:2379
     # Run collectors for system information
     - run:
         collectorName: "uptime"
@@ -320,5 +324,17 @@ spec:
           - pass:
               when: "statusCode == 200"
               message: Connected to https://localhost:6443/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-etcd-api-2379
+        collectorName: curl-etcd-api-2379
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to http://localhost:2379/
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to http://localhost:2379/
           - warn:
               message: "Unexpected response"
