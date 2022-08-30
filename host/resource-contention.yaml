@@ -20,6 +20,10 @@ spec:
         command: "df"
         args: ["-h"]
     - run:
+        collectorName: "du-root"
+        command: "sh"
+        args: ["-c", "du -Shax / --exclude /proc | sort -rh | head -20"]
+    - run:
         collectorName: "iostat"
         command: "iostat"
         args: []
