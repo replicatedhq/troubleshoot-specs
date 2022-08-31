@@ -122,19 +122,19 @@ spec:
     - run:
         collectorName: "journalctl-containerd"
         command: "journalctl"
-        args: ["-u", "containerd", "--no-pager", "-S", "1 day ago"]
+        args: ["-u", "containerd", "--no-pager", "-S", "7 days ago"]
     - run:
         collectorName: "journalctl-kubelet"
         command: "journalctl"
-        args: ["-u", "kubelet", "--no-pager", "-S", "1 day ago"]
+        args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
     - run:
         collectorName: "journalctl-docker"
         command: "journalctl"
-        args: ["-u", "docker", "--no-pager", "-S", "1 day ago"]
+        args: ["-u", "docker", "--no-pager", "-S", "7 days ago"]
     - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
+        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
