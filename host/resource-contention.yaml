@@ -5,16 +5,30 @@ metadata:
   name: resource-contention
 spec:
   hostCollectors:
+    # System Info Collectors
+    - blockDevices: {}
     - cpu: {}
+    - hostOS: {}
+    - hostServices: {}
+    - ipv4Interfaces: {}
     - memory: {}
+    - time: {}
     - run:
         collectorName: "uptime"
         command: "uptime"
         args: []
     - run:
+        collectorName: "free"
+        command: "free"
+        args: ["-m"]
+    - run:
         collectorName: "top"
         command: "top"
         args: ["-b", "-n", "1"]
+    - run:
+        collectorName: "uname"
+        command: "uname"
+        args: ["-a"]
     - run:
         collectorName: "df"
         command: "df"
@@ -24,13 +38,29 @@ spec:
         command: "sh"
         args: ["-c", "du -Shax / --exclude /proc | sort -rh | head -20"]
     - run:
+        collectorName: "mount"
+        command: "mount"
+        args: ["-l"]
+    - run:
         collectorName: "iostat"
         command: "iostat"
-        args: []
+        args: ["-x"]
+    - run:
+        collectorName: "vmstat"
+        command: "vmstat"
+        args: ["-w"]
+    - run:
+        collectorName: "iostat"
+        command: "iostat"
+        args: ["-x"]
+    - run:
+        collectorName: "ps-high-load"
+        command: "sh"
+        args: ["-c", "ps -eo s,user,cmd | grep ^[RD] | sort | uniq -c | sort -nbr | head -20"]
     - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
+        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
     - filesystemPerformance:
         collectorName: filesystem-latency-two-minute-benchmark
         timeout: 2m
