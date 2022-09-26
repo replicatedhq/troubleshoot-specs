@@ -74,6 +74,7 @@ spec:
         backgroundWriteIOPSJobs: 6
         backgroundReadIOPS: 50
         backgroundReadIOPSJobs: 1
+        exclude: true
   hostAnalyzers:
     - cpu:
         checkName: "Number of CPUs"
@@ -99,3 +100,4 @@ spec:
               message: "Write latency is ok (p99 target < 10ms)"
           - warn:
               message: "Write latency is high. p99 target >= 10ms)"
+        exclude: true
