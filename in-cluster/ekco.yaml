@@ -1,0 +1,19 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: ekco
+spec:
+  uri:
+  collectors:
+    - clusterInfo: {}
+    - clusterResources: {}
+  analyzers:
+    - deploymentStatus:
+        name: ekc-operator
+        namespace: kurl
+        outcomes:
+          - fail:
+              when: "< 1"
+              message: EKCO does not have any ready replicas
+          - pass:
+              message: EKCO is ready
