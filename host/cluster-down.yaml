@@ -101,6 +101,10 @@ spec:
         collectorName: "iptables"
         command: "iptables"
         args: ["-L", "-v"]
+    - run:
+        collectorName: "ipvsadm"
+        command: "ipvsadm"
+        args: ["-L"]
     # Systemctl service statuses for CRI, Kubelet, and Firewall
     - run:
         collectorName: "systemctl-firewalld-status"
