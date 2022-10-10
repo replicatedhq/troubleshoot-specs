@@ -104,7 +104,7 @@ spec:
     - run:
         collectorName: "ipvsadm"
         command: "ipvsadm"
-        args: ["-L"]
+        args: ["-l", "-n"]
     # Systemctl service statuses for CRI, Kubelet, and Firewall
     - run:
         collectorName: "systemctl-firewalld-status"
