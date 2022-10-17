@@ -1,0 +1,219 @@
+# This is a more minimal spec compared to the default used to pull relevant info in determining bundle generation could be hanging when done via KOTS
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: default
+spec:
+  collectors:
+    - clusterInfo: {}
+    - clusterResources: {}
+    - exec:
+        args:
+          - "-U"
+          - kotsadm
+        collectorName: kotsadm-postgres-db
+        command:
+          - pg_dump
+        containerName: kotsadm-postgres
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-postgres
+        timeout: 10s
+    - exec:
+        args:
+          - "http://localhost:3030/goroutines"
+        collectorName: kotsadm-goroutines
+        command:
+          - curl
+        containerName: kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kotsadm
+        timeout: 10s
+    - exec:
+        args:
+          - "http://localhost:3030/goroutines"
+        collectorName: kotsadm-operator-goroutines
+        command:
+          - curl
+        containerName: kotsadm-operator
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-operator
+        timeout: 10s
+    - logs:
+        collectorName: kotsadm-postgres-db
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-postgres
+    - logs:
+        collectorName: kotsadm-api
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-api
+    - logs:
+        collectorName: kotsadm-operator
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-operator
+    - logs:
+        collectorName: kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kotsadm
+    - logs:
+        collectorName: kurl-proxy-kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kurl-proxy-kotsadm
+    - logs:
+        collectorName: kotsadm-dex
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-dex
+    - logs:
+        collectorName: kotsadm-fs-minio
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-fs-minio
+    - logs:
+        collectorName: kotsadm-s3-ops
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-s3-ops
+    - logs:
+        collectorName: registry
+        name: kots/kurl
+        selector:
+          - app=registry
+        namespace: kurl
+    - logs:
+        collectorName: ekc-operator
+        name: kots/kurl
+        selector:
+          - app=ekc-operator
+        namespace: kurl
+    - secret:
+        collectorName: kotsadm-replicated-registry
+        name: kotsadm-replicated-registry # NOTE: this will not live under the kots/ directory like other collectors
+        includeValue: false
+        key: .dockerconfigjson
+    - exec:
+        collectorName: weave-status
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - status
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - exec:
+        collectorName: weave-report
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - report
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - logs:
+        collectorName: weave-net
+        selector:
+          - name=weave-net
+        namespace: kube-system
+        name: kots/kurl/weave
+    - configMap:
+        collectorName: kurl-current-config
+        name: kurl-current-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-last-config
+        name: kurl-last-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+  analyzers:
+    - containerRuntime:
+        outcomes:
+          - fail:
+              when: "== gvisor"
+              message: The Admin Console does not support using the gvisor runtime
+          - pass:
+              message: A supported container runtime is present on all nodes
+    - clusterPodStatuses:
+        outcomes:
+          - fail:
+              when: "!= Healthy"
+              message: "Status: {{ .Status.Reason }}"
+    - statefulsetStatus: {}
+    - deploymentStatus: {}
+    - jobStatus: {}
+    - replicasetStatus: {}
+    - weaveReport:
+        reportFileGlob: kots/kurl/weave/kube-system/*/weave-report-stdout.txt
+    - textAnalyze:
+        checkName: Weave Status
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-status-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: 'Status: ready'
+    - textAnalyze:
+        checkName: Weave Report
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: '"Ready": true'
+    - textAnalyze:
+        checkName: Weave IP Allocation
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
+          - pass:
+              message: Weave is ready, there are no IP allocation issues.
+        regex: '"IP Allocation was seeded by different peers": false'
+    - textAnalyze:
+        checkName: Inter-pod Networking
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/goldpinger/*/kotsadm-*/goldpinger-statistics-stdout.txt
+        outcomes:
+          - fail:
+              when: "OK = false"
+              message: Some nodes have pod communication issues
+          - pass:
+              message: Goldpinger can communicate properly
+        regexGroups: '"OK": ?(?P<OK>\w+)'
+    - nodeResources:
+        checkName: Node status check
+        outcomes:
+          - fail:
+              when: "nodeCondition(Ready) == False"
+              message: "Not all nodes are online."
+          - fail:
+              when: "nodeCondition(Ready) == Unknown"
+              message: "Not all nodes are online."
+          - pass:
+              message: "All nodes are online."
