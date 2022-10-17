@@ -217,4 +217,3 @@ spec:
               message: "Not all nodes are online."
           - pass:
               message: "All nodes are online."
-
