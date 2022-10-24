@@ -58,6 +58,14 @@ spec:
           url: http://localhost:2379
     # Run collectors for system information
     - run:
+        collectorName: "free"
+        command: "free"
+        args: ["-m"]
+    - run:
+        collectorName: "top"
+        command: "top"
+        args: ["-b", "-n", "1"]
+    - run:
         collectorName: "uptime"
         command: "uptime"
         args: []
