@@ -106,6 +106,10 @@ spec:
         command: "docker"
         args: ["ps", "-a"]
     - run:
+        collectorName: "docker-system-df"
+        command: "docker"
+        args: ["system", "df", "-v"]
+    - run:
         collectorName: "iptables"
         command: "iptables"
         args: ["-L", "-v"]
