@@ -15,11 +15,6 @@ spec:
         certificatePath: /etc/kubernetes/pki/etcd/server.crt
         keyPath: /etc/kubernetes/pki/etcd/server.key
     - http:
-        collectorName: curl-k8s-api-6443
-        get:
-          url: https://localhost:6443
-          insecureSkipVerify: true
-    - http:
         collectorName: curl-api-replicated-com
         get:
           url: https://api.replicated.com/healthz
@@ -66,7 +61,7 @@ spec:
     - run:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "1 day ago"]
+        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
@@ -110,18 +105,6 @@ spec:
           - pass:
               when: "key-pair-valid"
               message: Certificate key pair is valid
-    - http:
-        checkName: curl-k8s-api-6443
-        collectorName: curl-k8s-api-6443
-        outcomes:
-          - warn:
-              when: "error"
-              message: Error connecting to https://localhost:6443/healthz
-          - pass:
-              when: "statusCode == 200"
-              message: Connected to https://localhost:6443/healthz
-          - warn:
-              message: "Unexpected response"
     - http:
         checkName: curl-api-replicated-com
         collectorName: curl-api-replicated-com

@@ -1,0 +1,70 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: networking-issues-non-airgap
+spec:
+  hostCollectors:
+    - diskUsage:
+        collectorName: root
+        path: /
+    - diskUsage:
+        collectorName: tmp
+        path: /tmp
+    - diskUsage:
+        collectorName: var-lib-kubelet
+        path: /var/lib/kubelet
+    - diskUsage:
+        collectorName: var-lib-docker
+        path: /var/lib/docker
+    - diskUsage:
+        collectorName: var-lib-containerd
+        path: /var/lib/containerd
+    - run:
+        collectorName: "docker-info"
+        command: "docker"
+        args: ["info"]
+    - run:
+        collectorName: "crictl-info"
+        command: "crictl"
+        args: ["info"]
+    - run:
+        collectorName: "crictl-ps"
+        command: "crictl"
+        args: ["ps", "-a"]
+    - run:
+        collectorName: "docker-ps"
+        command: "docker"
+        args: ["ps", "-a"]
+    - run:
+        collectorName: "docker-system-df"
+        command: "docker"
+        args: ["system", "df", "-v"]
+    - run:
+        collectorName: "systemctl-docker-status"
+        command: "systemctl"
+        args: ["status", "docker"]
+    - run:
+        collectorName: "systemctl-kubelet-status"
+        command: "systemctl"
+        args: ["status", "kubelet"]
+    - run:
+        collectorName: "systemctl-containerd-status"
+        command: "systemctl"
+        args: ["status", "containerd"]
+    # Logs for CRI, Kubelet, Kernel
+    - run:
+        collectorName: "journalctl-containerd"
+        command: "journalctl"
+        args: ["-u", "containerd", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-kubelet"
+        command: "journalctl"
+        args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-docker"
+        command: "journalctl"
+        args: ["-u", "docker", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-dmesg"
+        command: "journalctl"
+        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]

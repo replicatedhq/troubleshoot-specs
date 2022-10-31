@@ -1,0 +1,161 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: networking-issues-kurl
+spec:
+  collectors:
+    - logs:
+        collectorName: kurl-control-plane
+        name: kots/kurl/control-plane
+        selector:
+          - tier=control-plane
+    - logs:
+        collectorName: kurl-proxy-kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kurl-proxy-kotsadm
+    - logs:
+        collectorName: ekc-operator
+        name: kots/kurl
+        selector:
+          - app=ekc-operator
+        namespace: kurl
+    - exec:
+        collectorName: weave-status
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - status
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - exec:
+        collectorName: weave-report
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - report
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - logs:
+        collectorName: weave-net
+        selector:
+          - name=weave-net
+        namespace: kube-system
+        name: kots/kurl/weave
+    - exec:
+        args:
+          - "http://goldpinger.kurl.svc.cluster.local:80/check_all"
+        collectorName: goldpinger-statistics
+        command:
+          - curl
+        containerName: kotsadm
+        name: kots/goldpinger
+        selector:
+          - app=kotsadm
+        timeout: 10s
+    - copyFromHost:
+        collectorName: kurl-host-preflights
+        name: kots/kurl/host-preflights
+        hostPath: /var/lib/kurl/host-preflights
+        extractArchive: true
+        image: alpine
+        imagePullPolicy: IfNotPresent
+        timeout: 1m
+    - configMap:
+        collectorName: kurl-current-config
+        name: kurl-current-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-last-config
+        name: kurl-last-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+  analyzers:
+    - clusterPodStatuses:
+        outcomes:
+          - fail:
+              when: "!= Healthy"
+              message: "Status: {{ .Status.Reason }}"
+    - statefulsetStatus: {}
+    - deploymentStatus: {}
+    - jobStatus: {}
+    - replicasetStatus: {}
+    - weaveReport:
+        reportFileGlob: kots/kurl/weave/kube-system/*/weave-report-stdout.txt
+    - textAnalyze:
+        checkName: Weave Status
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-status-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: 'Status: ready'
+    - textAnalyze:
+        checkName: Weave Report
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: '"Ready": true'
+    - textAnalyze:
+        checkName: Weave IP Allocation
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
+          - pass:
+              message: Weave is ready, there are no IP allocation issues.
+        regex: '"IP Allocation was seeded by different peers": false'
+    - textAnalyze:
+        checkName: Inter-pod Networking
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/goldpinger/*/kotsadm-*/goldpinger-statistics-stdout.txt
+        outcomes:
+          - fail:
+              when: "OK = false"
+              message: Some nodes have pod communication issues
+          - pass:
+              message: Goldpinger can communicate properly
+        regexGroups: '"OK": ?(?P<OK>\w+)'
+    - nodeResources:
+        checkName: Node status check
+        outcomes:
+          - fail:
+              when: "nodeCondition(Ready) == False"
+              message: "Not all nodes are online."
+          - fail:
+              when: "nodeCondition(Ready) == Unknown"
+              message: "Not all nodes are online."
+          - pass:
+              message: "All nodes are online."
+    - clusterPodStatuses:
+        checkName: contour pods unhealthy
+        namespaces:
+          - projectcontour
+        outcomes:
+          - fail:
+              when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
+              message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.
