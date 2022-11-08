@@ -1,0 +1,41 @@
+# Spec to run when a kURL cluster is down and in-cluster specs can't be run
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: all-journald-logs
+spec:
+  hostCollectors:
+    # Systemd Service Configurations for CRI, Kubelet
+    - run:
+        collectorName: "systemctl-cat-journald"
+        command: "systemctl"
+        args: ["cat", "systemd-journald"]
+    - run:
+        collectorName: "systemctl-cat-docker"
+        command: "systemctl"
+        args: ["cat", "docker"]
+    - run:
+        collectorName: "systemctl-cat-containerd"
+        command: "systemctl"
+        args: ["cat", "containerd"]
+    - run:
+        collectorName: "systemctl-cat-kubelet"
+        command: "systemctl"
+        args: ["cat", "kubelet"]
+    # Logs for CRI, Kubelet, Kernel
+    - run:
+        collectorName: "journalctl-containerd-all"
+        command: "journalctl"
+        args: ["-u", "containerd", "--no-pager", "-S", "-a"]
+    - run:
+        collectorName: "journalctl-kubelet-all"
+        command: "journalctl"
+        args: ["-u", "kubelet", "--no-pager", "-S", "-a"]
+    - run:
+        collectorName: "journalctl-docker-all"
+        command: "journalctl"
+        args: ["-u", "docker", "--no-pager", "-S", "-a"]
+    - run:
+        collectorName: "journalctl-dmesg-all"
+        command: "journalctl"
+        args: ["--dmesg", "--no-pager", "-S", "-a"]
