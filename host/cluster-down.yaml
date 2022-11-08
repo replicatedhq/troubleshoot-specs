@@ -134,6 +134,23 @@ spec:
         collectorName: "systemctl-containerd-status"
         command: "systemctl"
         args: ["status", "containerd"]
+    # Systemd Service Configurations for CRI, Kubelet
+    - run:
+        collectorName: "systemctl-cat-journald"
+        command: "systemctl"
+        args: ["cat", "systemd-journald"]
+    - run:
+        collectorName: "systemctl-cat-docker"
+        command: "systemctl"
+        args: ["cat", "docker"]
+    - run:
+        collectorName: "systemctl-cat-containerd"
+        command: "systemctl"
+        args: ["cat", "containerd"]
+    - run:
+        collectorName: "systemctl-cat-kubelet"
+        command: "systemctl"
+        args: ["cat", "kubelet"]
     # Logs for CRI, Kubelet, Kernel
     - run:
         collectorName: "journalctl-containerd"
