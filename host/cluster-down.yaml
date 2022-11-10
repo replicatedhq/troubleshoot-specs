@@ -118,6 +118,10 @@ spec:
         command: "ipvsadm"
         args: ["-l", "-n"]
     - run:
+        collectorName: "lsblk"
+        command: "lsblk"
+        args: ["--fs"]
+    - run:
         collectorName: "netstat-ports"
         command: "netstat"
         args: ["-t", "-u", "-l", "-p", "-n"]
