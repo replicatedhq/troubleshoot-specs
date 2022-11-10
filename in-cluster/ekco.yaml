@@ -16,7 +16,7 @@ spec:
           spec:
             containers:
               - name: ekc-operator
-                image: replicated/ekco:v0.4.1
+                image: replicated/ekco:v0.3.1
   analyzers:
     - deploymentStatus:
         checkName: Check EKCO is operational
@@ -28,16 +28,21 @@ spec:
               message: EKCO is not installed - please add the EKCO component to your kURL spec and re-run the installer script
           - fail:
               when: "< 1"
-              message: EKCO does not have any ready replicas
+              message: EKCO does not have any Ready pods
           - pass:
-              message: EKCO has at least 1 replica
+              message: EKCO is installed and running
     - textAnalyze:
-        checkName: Check installed EKCO version
+        checkName: Check installed EKCO version for critical fixes
         fileName: static/ekco.yaml
         regexGroups: 'image: replicated/ekco:v(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)'
         outcomes:
           - warn:
-              when: "Minor < 5"
-              message: A very important bug fix has been released in EKCO 0.5.0.  Please upgrade to the latest available version.
+              when: "Minor < 4"
+              message: A critical update for cluster certificate rotation has been released in EKCO 0.4.0.  Please upgrade to the latest available version.
+          - warn:
+              when: "Minor < 19"
+              message: A critical fix for registry certificate rotation has been released in EKCO 0.19.3.  Please upgrade to the latest available version.
+          - warn:
+              when: ""
           - pass:
-              message: EKCO is up to date
+              message: EKCO version is recent
