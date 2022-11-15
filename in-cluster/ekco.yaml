@@ -3,20 +3,23 @@ kind: SupportBundle
 metadata:
   name: ekco
 spec:
-  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/ekco.yaml
+  # uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/ekco.yaml
   collectors:
-    - data:
-        name: static/ekco.yaml
-        data: |-
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: ekc-operator
-            namespace: kurl
-          spec:
-            containers:
-              - name: ekc-operator
-                image: replicated/ekco:v0.3.1
+    - runPod:
+        name: ekco-resources
+        namespace: kurl
+        podSpec:
+          containers:
+            - name: inspect-ekco-pods
+              image: adamancini/netshoot
+              command: ["sh", "-c", "--"]
+              args:
+                [
+                  "kubectl get pod -n kurl --selector app=ekc-operator --field-selector status.phase=Running -o json | jq -r .items[]",
+                ]
+          restartPolicy: Never
+          dnsPolicy: ClusterFirst
+          serviceAccount: ekco
   analyzers:
     - deploymentStatus:
         checkName: Check EKCO is operational
@@ -33,8 +36,8 @@ spec:
               message: EKCO is installed and running
     - textAnalyze:
         checkName: Check installed EKCO version for critical fixes
-        fileName: static/ekco.yaml
-        regexGroups: 'image: replicated/ekco:v(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)'
+        fileName: ekco-resources/ekco-resources.log
+        regexGroups: '"image": "replicated/ekco:v(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)"'
         outcomes:
           - warn:
               when: "Minor < 4"
@@ -42,7 +45,6 @@ spec:
           - warn:
               when: "Minor < 19"
               message: A critical fix for registry certificate rotation has been released in EKCO 0.19.3.  Please upgrade to the latest available version.
-          - warn:
-              when: ""
           - pass:
+              when: "Minor > 20"
               message: EKCO version is recent
