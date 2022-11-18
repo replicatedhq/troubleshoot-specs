@@ -262,3 +262,17 @@ spec:
           - fail:
               when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
               message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.
+    - textAnalyze:
+        checkName: longhorn multipath conflict
+        exclude: ""
+        ignoreIfNoFiless: true
+        fileName: longhorn/longhorn-system/logs/longhorn-csi-plugin-*/longhorn-csi-plugin.log
+        outcomes:
+          - fail:
+              when: "true"
+              uri: "https://longhorn.io/kb/troubleshooting-volume-with-multipath/"
+              message: "Longhorn volumes may be in use by system multipath."
+          - pass:
+              when: "false"
+              message: "No block-device conflicts detected"
+        regex: '.*is apparently in use by the system;.*'
