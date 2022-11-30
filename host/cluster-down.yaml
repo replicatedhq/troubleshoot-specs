@@ -379,3 +379,14 @@ spec:
               message: Connected to http://localhost:2379/
           - warn:
               message: "Unexpected response"
+  analyzers:
+    - textAnalyze:
+      checkName: check-for-possible-hostname-changes
+      fileName: host-collectors/run-host/journalctl-kubelet.txt
+      regex: 'can only access node lease with the same name as the requesting node'
+      outcomes:
+        - pass:
+            when: "false"
+        - warn:
+            when: "true"
+            message: "Possible hostname change"
