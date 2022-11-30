@@ -381,12 +381,13 @@ spec:
               message: "Unexpected response"
   analyzers:
     - textAnalyze:
-      checkName: check-for-possible-hostname-changes
-      fileName: host-collectors/run-host/journalctl-kubelet.txt
-      regex: 'can only access node lease with the same name as the requesting node'
-      outcomes:
-        - pass:
-            when: "false"
-        - warn:
-            when: "true"
-            message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
+        checkName: Hostname Mismatch
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: '.*can only access node lease with the same name as the requesting node.*'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
+          - pass:
+              when: "false"
+              message: "No signs of hostname changes found"
