@@ -276,3 +276,14 @@ spec:
               when: "false"
               message: "No block-device conflicts detected"
         regex: '.*is apparently in use by the system;.*'
+    - textAnalyze:
+        checkName: Minio disk Full
+        fileName: cluster-resources/pods/logs/kurl/registry-*/registry.log
+        regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Minio Disk Full"
+          - pass:
+              when: "false"
+              message: "Minio Disk Ok"
