@@ -389,4 +389,4 @@ spec:
             when: "false"
         - warn:
             when: "true"
-            message: "Possible hostname change"
+            message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
