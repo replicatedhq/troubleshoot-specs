@@ -2,403 +2,403 @@
 apiVersion: troubleshoot.sh/v1beta2
 kind: SupportBundle
 metadata:
-    name: cluster-down
+  name: cluster-down
 spec:
-    hostCollectors:
-        # System Info Collectors
-        - blockDevices: {}
-        - cpu: {}
-        - hostOS: {}
-        - hostServices: {}
-        - ipv4Interfaces: {}
-        - memory: {}
-        - time: {}
-        # Certificate Info for ETCD and K8s API
-        - certificate:
-              collectorName: k8s-api-keypair
-              certificatePath: /etc/kubernetes/pki/apiserver.crt
-              keyPath: /etc/kubernetes/pki/apiserver.key
-        - certificate:
-              collectorName: etcd-keypair
-              certificatePath: /etc/kubernetes/pki/etcd/server.crt
-              keyPath: /etc/kubernetes/pki/etcd/server.key
-        # Disk usage for commonly used directories in kURL installs
-        - diskUsage:
-              collectorName: root
-              path: /
-        - diskUsage:
-              collectorName: tmp
-              path: /tmp
-        - diskUsage:
-              collectorName: var-lib-kubelet
-              path: /var/lib/kubelet
-        - diskUsage:
-              collectorName: var-lib-docker
-              path: /var/lib/docker
-        - diskUsage:
-              collectorName: var-lib-containerd
-              path: /var/lib/containerd
-        - diskUsage:
-              collectorName: var-lib-rook
-              path: /var/lib/rook
-        - diskUsage:
-              collectorName: opt-replicated
-              path: /opt/replicated
-        - diskUsage:
-              collectorName: var-openebs
-              path: /var/openebs
-        - http:
-              collectorName: curl-k8s-api-6443
-              get:
-                  url: https://localhost:6443
-                  insecureSkipVerify: true
-        - http:
-              collectorName: curl-etcd-api-2379
-              get:
-                  url: http://localhost:2379
-        # Run collectors for system information
-        - run:
-              collectorName: "free"
-              command: "free"
-              args: ["-m"]
-        - run:
-              collectorName: "top"
-              command: "top"
-              args: ["-b", "-n", "1"]
-        - run:
-              collectorName: "uptime"
-              command: "uptime"
-              args: []
-        - run:
-              collectorName: "uname"
-              command: "uname"
-              args: ["-a"]
-        - run:
-              collectorName: "df"
-              command: "df"
-              args: ["-h"]
-        - run:
-              collectorName: "iostat"
-              command: "iostat"
-              args: []
-        - run:
-              collectorName: "sestatus"
-              command: "sestatus"
-              args: []
-        - run:
-              collectorName: "apparmor-status"
-              command: "apparmor_status"
-              args: []
-        - run:
-              collectorName: "docker-info"
-              command: "docker"
-              args: ["info"]
-        - run:
-              collectorName: "crictl-info"
-              command: "crictl"
-              args: ["info"]
-        - run:
-              collectorName: "crictl-ps"
-              command: "crictl"
-              args: ["ps", "-a"]
-        - run:
-              collectorName: "docker-ps"
-              command: "docker"
-              args: ["ps", "-a"]
-        - run:
-              collectorName: "docker-system-df"
-              command: "docker"
-              args: ["system", "df", "-v"]
-        - run:
-              collectorName: "iptables"
-              command: "iptables"
-              args: ["-L", "-v"]
-        - run:
-              collectorName: "ipvsadm"
-              command: "ipvsadm"
-              args: ["-l", "-n"]
-        - run:
-              collectorName: "lsblk"
-              command: "lsblk"
-              args: ["--fs"]
-        - run:
-              collectorName: "netstat-ports"
-              command: "netstat"
-              args: ["-t", "-u", "-l", "-p", "-n"]
-        # Systemctl service statuses for CRI, Kubelet, and Firewall
-        - run:
-              collectorName: "systemctl-firewalld-status"
-              command: "systemctl"
-              args: ["status", "firewalld"]
-        - run:
-              collectorName: "systemctl-docker-status"
-              command: "systemctl"
-              args: ["status", "docker"]
-        - run:
-              collectorName: "systemctl-kubelet-status"
-              command: "systemctl"
-              args: ["status", "kubelet"]
-        - run:
-              collectorName: "systemctl-containerd-status"
-              command: "systemctl"
-              args: ["status", "containerd"]
-        # Systemd Service Configurations for CRI, Kubelet
-        - run:
-              collectorName: "systemctl-cat-journald"
-              command: "systemctl"
-              args: ["cat", "systemd-journald"]
-        - run:
-              collectorName: "systemctl-cat-docker"
-              command: "systemctl"
-              args: ["cat", "docker"]
-        - run:
-              collectorName: "systemctl-cat-containerd"
-              command: "systemctl"
-              args: ["cat", "containerd"]
-        - run:
-              collectorName: "systemctl-cat-kubelet"
-              command: "systemctl"
-              args: ["cat", "kubelet"]
-        # Logs for CRI, Kubelet, Kernel
-        - run:
-              collectorName: "journalctl-containerd"
-              command: "journalctl"
-              args: ["-u", "containerd", "--no-pager", "-S", "7 days ago"]
-        - run:
-              collectorName: "journalctl-kubelet"
-              command: "journalctl"
-              args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
-        - run:
-              collectorName: "journalctl-docker"
-              command: "journalctl"
-              args: ["-u", "docker", "--no-pager", "-S", "7 days ago"]
-        - run:
-              collectorName: "journalctl-dmesg"
-              command: "journalctl"
-              args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
-    hostAnalyzers:
-        - certificate:
-              collectorName: k8s-api-keypair
-              outcomes:
-                  - fail:
-                        when: "key-pair-missing"
-                        message: Certificate key pair not found in /etc/kubernetes/pki/apiserver.*
-                  - fail:
-                        when: "key-pair-switched"
-                        message: Cert and key pair are switched
-                  - fail:
-                        when: "key-pair-encrypted"
-                        message: Private key is encrypted
-                  - fail:
-                        when: "key-pair-mismatch"
-                        message: Cert and key do not match
-                  - fail:
-                        when: "key-pair-invalid"
-                        message: Certificate key pair is invalid
-                  - pass:
-                        when: "key-pair-valid"
-                        message: Certificate key pair is valid
-        - certificate:
-              collectorName: etcd-keypair
-              outcomes:
-                  - fail:
-                        when: "key-pair-missing"
-                        message: Certificate key pair not found in /etc/kubernetes/pki/etcd/server.*
-                  - fail:
-                        when: "key-pair-switched"
-                        message: Cert and key pair are switched
-                  - fail:
-                        when: "key-pair-encrypted"
-                        message: Private key is encrypted
-                  - fail:
-                        when: "key-pair-mismatch"
-                        message: Cert and key do not match
-                  - fail:
-                        when: "key-pair-invalid"
-                        message: Certificate key pair is invalid
-                  - pass:
-                        when: "key-pair-valid"
-                        message: Certificate key pair is valid
-        - cpu:
-              checkName: "Number of CPUs"
-              outcomes:
-                  - warn:
-                        when: "count < 4"
-                        message: At least 4 CPU cores are recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
-                  - pass:
-                        message: This server has at least 4 CPU cores
-        - memory:
-              checkName: "Amount of Memory"
-              outcomes:
-                  - warn:
-                        when: "< 8G"
-                        message: At least 8G of memory is recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
-                  - pass:
-                        message: The system has at least 8G of memory
-        - time:
-              checkName: "ntp-status"
-              outcomes:
-                  - fail:
-                        when: "ntp == unsynchronized+inactive"
-                        message: "System clock is not synchronized"
-                  - warn:
-                        when: "ntp == unsynchronized+active"
-                        message: System clock not yet synchronized
-                  - pass:
-                        when: "ntp == synchronized+active"
-                        message: "System clock is synchronized"
-                  - warn:
-                        when: "timezone != UTC"
-                        message: "Non UTC timezone can interfere with system function"
-                  - pass:
-                        when: "timezone == UTC"
-                        message: "Timezone is set to UTC"
-        - diskUsage:
-              checkName: "root"
-              collectorName: "root"
-              outcomes:
-                  - fail:
-                        when: "total < 40Gi"
-                        message: The disk containing directory / has less than 40Gi of total space
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory / is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory / has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory / has sufficient space
-        - diskUsage:
-              checkName: "tmp"
-              collectorName: "tmp"
-              outcomes:
-                  - warn:
-                        when: "total < 8Gi"
-                        message: The disk containing directory /tmp has less than 8Gi of total space
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /tmp is more than 80% full
-                  - warn:
-                        when: "available < 2Gi"
-                        message: The disk containing directory /tmp has less than 2Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /tmp has sufficient space
-        - diskUsage:
-              checkName: "var-lib-kubelet"
-              collectorName: "var-lib-kubelet"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /var/lib/kubelet is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /var/lib/kubelet has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /var/lib/kubelet has sufficient space
-        - diskUsage:
-              checkName: "var-lib-docker"
-              collectorName: "var-lib-docker"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /var/lib/docker is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /var/lib/docker has sufficient space
-        - diskUsage:
-              checkName: "var-lib-containerd"
-              collectorName: "var-lib-containerd"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /var/lib/containerd is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /var/lib/containerd has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /var/lib/containerd has sufficient space
-        - diskUsage:
-              checkName: "var-lib-rook"
-              collectorName: "var-lib-rook"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /var/lib/rook is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /var/lib/rook has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /var/lib/rook has sufficient space
-        - diskUsage:
-              checkName: "opt-replicated"
-              collectorName: "opt-replicated"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /opt/replicated is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /opt/replicated has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /opt/replicated has sufficient space
-        - diskUsage:
-              checkName: "var-openebs"
-              collectorName: "var-openebs"
-              outcomes:
-                  - warn:
-                        when: "used/total > 80%"
-                        message: The disk containing directory /var/openebs is more than 80% full
-                  - warn:
-                        when: "available < 10Gi"
-                        message: The disk containing directory /var/openebs has less than 10Gi of disk space available
-                  - pass:
-                        message: The disk containing directory /var/openebs has sufficient space
-        - http:
-              checkName: curl-k8s-api-6443
-              collectorName: curl-k8s-api-6443
-              outcomes:
-                  - warn:
-                        when: "error"
-                        message: Error connecting to https://localhost:6443/healthz
-                  - pass:
-                        when: "statusCode == 200"
-                        message: Connected to https://localhost:6443/healthz
-                  - warn:
-                        message: "Unexpected response"
-        - http:
-              checkName: curl-etcd-api-2379
-              collectorName: curl-etcd-api-2379
-              outcomes:
-                  - warn:
-                        when: "error"
-                        message: Error connecting to http://localhost:2379/
-                  - pass:
-                        when: "statusCode == 200"
-                        message: Connected to http://localhost:2379/
-                  - warn:
-                        message: "Unexpected response"
-    analyzers:
-        - textAnalyze:
-              checkName: Hostname Mismatch
-              fileName: host-collectors/run-host/journalctl-kubelet.txt
-              regex: ".*can only access node lease with the same name as the requesting node.*"
-              outcomes:
-                  - fail:
-                        when: "true"
-                        message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
-                  - pass:
-                        when: "false"
-                        message: "No signs of hostname changes found"
-        - textAnalyze:
-              checkName: "Check for CNI 'not ready' messages"
-              fileName: host-collectors/run-host/journalctl-kubelet.txt
-              regex: "Container runtime network not ready.*cni plugin not initialized"
-              outcomes:
-                  - pass:
-                        when: "false"
-                        message: "CNI is initialized"
-                  - fail:
-                        when: "true"
-                        message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
+  hostCollectors:
+    # System Info Collectors
+    - blockDevices: {}
+    - cpu: {}
+    - hostOS: {}
+    - hostServices: {}
+    - ipv4Interfaces: {}
+    - memory: {}
+    - time: {}
+    # Certificate Info for ETCD and K8s API
+    - certificate:
+        collectorName: k8s-api-keypair
+        certificatePath: /etc/kubernetes/pki/apiserver.crt
+        keyPath: /etc/kubernetes/pki/apiserver.key
+    - certificate:
+        collectorName: etcd-keypair
+        certificatePath: /etc/kubernetes/pki/etcd/server.crt
+        keyPath: /etc/kubernetes/pki/etcd/server.key
+    # Disk usage for commonly used directories in kURL installs
+    - diskUsage:
+        collectorName: root
+        path: /
+    - diskUsage:
+        collectorName: tmp
+        path: /tmp
+    - diskUsage:
+        collectorName: var-lib-kubelet
+        path: /var/lib/kubelet
+    - diskUsage:
+        collectorName: var-lib-docker
+        path: /var/lib/docker
+    - diskUsage:
+        collectorName: var-lib-containerd
+        path: /var/lib/containerd
+    - diskUsage:
+        collectorName: var-lib-rook
+        path: /var/lib/rook
+    - diskUsage:
+        collectorName: opt-replicated
+        path: /opt/replicated
+    - diskUsage:
+        collectorName: var-openebs
+        path: /var/openebs
+    - http:
+        collectorName: curl-k8s-api-6443
+        get:
+          url: https://localhost:6443
+          insecureSkipVerify: true
+    - http:
+        collectorName: curl-etcd-api-2379
+        get:
+          url: http://localhost:2379
+    # Run collectors for system information
+    - run:
+        collectorName: "free"
+        command: "free"
+        args: ["-m"]
+    - run:
+        collectorName: "top"
+        command: "top"
+        args: ["-b", "-n", "1"]
+    - run:
+        collectorName: "uptime"
+        command: "uptime"
+        args: []
+    - run:
+        collectorName: "uname"
+        command: "uname"
+        args: ["-a"]
+    - run:
+        collectorName: "df"
+        command: "df"
+        args: ["-h"]
+    - run:
+        collectorName: "iostat"
+        command: "iostat"
+        args: []
+    - run:
+        collectorName: "sestatus"
+        command: "sestatus"
+        args: []
+    - run:
+        collectorName: "apparmor-status"
+        command: "apparmor_status"
+        args: []
+    - run:
+        collectorName: "docker-info"
+        command: "docker"
+        args: ["info"]
+    - run:
+        collectorName: "crictl-info"
+        command: "crictl"
+        args: ["info"]
+    - run:
+        collectorName: "crictl-ps"
+        command: "crictl"
+        args: ["ps", "-a"]
+    - run:
+        collectorName: "docker-ps"
+        command: "docker"
+        args: ["ps", "-a"]
+    - run:
+        collectorName: "docker-system-df"
+        command: "docker"
+        args: ["system", "df", "-v"]
+    - run:
+        collectorName: "iptables"
+        command: "iptables"
+        args: ["-L", "-v"]
+    - run:
+        collectorName: "ipvsadm"
+        command: "ipvsadm"
+        args: ["-l", "-n"]
+    - run:
+        collectorName: "lsblk"
+        command: "lsblk"
+        args: ["--fs"]
+    - run:
+        collectorName: "netstat-ports"
+        command: "netstat"
+        args: ["-t", "-u", "-l", "-p", "-n"]
+    # Systemctl service statuses for CRI, Kubelet, and Firewall
+    - run:
+        collectorName: "systemctl-firewalld-status"
+        command: "systemctl"
+        args: ["status", "firewalld"]
+    - run:
+        collectorName: "systemctl-docker-status"
+        command: "systemctl"
+        args: ["status", "docker"]
+    - run:
+        collectorName: "systemctl-kubelet-status"
+        command: "systemctl"
+        args: ["status", "kubelet"]
+    - run:
+        collectorName: "systemctl-containerd-status"
+        command: "systemctl"
+        args: ["status", "containerd"]
+    # Systemd Service Configurations for CRI, Kubelet
+    - run:
+        collectorName: "systemctl-cat-journald"
+        command: "systemctl"
+        args: ["cat", "systemd-journald"]
+    - run:
+        collectorName: "systemctl-cat-docker"
+        command: "systemctl"
+        args: ["cat", "docker"]
+    - run:
+        collectorName: "systemctl-cat-containerd"
+        command: "systemctl"
+        args: ["cat", "containerd"]
+    - run:
+        collectorName: "systemctl-cat-kubelet"
+        command: "systemctl"
+        args: ["cat", "kubelet"]
+    # Logs for CRI, Kubelet, Kernel
+    - run:
+        collectorName: "journalctl-containerd"
+        command: "journalctl"
+        args: ["-u", "containerd", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-kubelet"
+        command: "journalctl"
+        args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-docker"
+        command: "journalctl"
+        args: ["-u", "docker", "--no-pager", "-S", "7 days ago"]
+    - run:
+        collectorName: "journalctl-dmesg"
+        command: "journalctl"
+        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
+  hostAnalyzers:
+    - certificate:
+        collectorName: k8s-api-keypair
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Certificate key pair not found in /etc/kubernetes/pki/apiserver.*
+          - fail:
+              when: "key-pair-switched"
+              message: Cert and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Cert and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Certificate key pair is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Certificate key pair is valid
+    - certificate:
+        collectorName: etcd-keypair
+        outcomes:
+          - fail:
+              when: "key-pair-missing"
+              message: Certificate key pair not found in /etc/kubernetes/pki/etcd/server.*
+          - fail:
+              when: "key-pair-switched"
+              message: Cert and key pair are switched
+          - fail:
+              when: "key-pair-encrypted"
+              message: Private key is encrypted
+          - fail:
+              when: "key-pair-mismatch"
+              message: Cert and key do not match
+          - fail:
+              when: "key-pair-invalid"
+              message: Certificate key pair is invalid
+          - pass:
+              when: "key-pair-valid"
+              message: Certificate key pair is valid
+    - cpu:
+        checkName: "Number of CPUs"
+        outcomes:
+          - warn:
+              when: "count < 4"
+              message: At least 4 CPU cores are recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
+          - pass:
+              message: This server has at least 4 CPU cores
+    - memory:
+        checkName: "Amount of Memory"
+        outcomes:
+          - warn:
+              when: "< 8G"
+              message: At least 8G of memory is recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
+          - pass:
+              message: The system has at least 8G of memory
+    - time:
+        checkName: "ntp-status"
+        outcomes:
+          - fail:
+              when: "ntp == unsynchronized+inactive"
+              message: "System clock is not synchronized"
+          - warn:
+              when: "ntp == unsynchronized+active"
+              message: System clock not yet synchronized
+          - pass:
+              when: "ntp == synchronized+active"
+              message: "System clock is synchronized"
+          - warn:
+              when: "timezone != UTC"
+              message: "Non UTC timezone can interfere with system function"
+          - pass:
+              when: "timezone == UTC"
+              message: "Timezone is set to UTC"
+    - diskUsage:
+        checkName: "root"
+        collectorName: "root"
+        outcomes:
+          - fail:
+              when: "total < 40Gi"
+              message: The disk containing directory / has less than 40Gi of total space
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory / is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory / has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory / has sufficient space
+    - diskUsage:
+        checkName: "tmp"
+        collectorName: "tmp"
+        outcomes:
+          - warn:
+              when: "total < 8Gi"
+              message: The disk containing directory /tmp has less than 8Gi of total space
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /tmp is more than 80% full
+          - warn:
+              when: "available < 2Gi"
+              message: The disk containing directory /tmp has less than 2Gi of disk space available
+          - pass:
+              message: The disk containing directory /tmp has sufficient space
+    - diskUsage:
+        checkName: "var-lib-kubelet"
+        collectorName: "var-lib-kubelet"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/kubelet is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/kubelet has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/kubelet has sufficient space
+    - diskUsage:
+        checkName: "var-lib-docker"
+        collectorName: "var-lib-docker"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/docker is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/docker has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/docker has sufficient space
+    - diskUsage:
+        checkName: "var-lib-containerd"
+        collectorName: "var-lib-containerd"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/containerd is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/containerd has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/containerd has sufficient space
+    - diskUsage:
+        checkName: "var-lib-rook"
+        collectorName: "var-lib-rook"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/lib/rook is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/lib/rook has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/lib/rook has sufficient space
+    - diskUsage:
+        checkName: "opt-replicated"
+        collectorName: "opt-replicated"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /opt/replicated is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /opt/replicated has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /opt/replicated has sufficient space
+    - diskUsage:
+        checkName: "var-openebs"
+        collectorName: "var-openebs"
+        outcomes:
+          - warn:
+              when: "used/total > 80%"
+              message: The disk containing directory /var/openebs is more than 80% full
+          - warn:
+              when: "available < 10Gi"
+              message: The disk containing directory /var/openebs has less than 10Gi of disk space available
+          - pass:
+              message: The disk containing directory /var/openebs has sufficient space
+    - http:
+        checkName: curl-k8s-api-6443
+        collectorName: curl-k8s-api-6443
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://localhost:6443/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://localhost:6443/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-etcd-api-2379
+        collectorName: curl-etcd-api-2379
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to http://localhost:2379/
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to http://localhost:2379/
+          - warn:
+              message: "Unexpected response"
+  analyzers:
+    - textAnalyze:
+        checkName: Hostname Mismatch
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: ".*can only access node lease with the same name as the requesting node.*"
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Possible hostname change. Verify that the current hostname matches what's expected by the k8s control plane"
+          - pass:
+              when: "false"
+              message: "No signs of hostname changes found"
+    - textAnalyze:
+        checkName: "Check for CNI 'not ready' messages"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: "Container runtime network not ready.*cni plugin not initialized"
+        outcomes:
+          - pass:
+              when: "false"
+              message: "CNI is initialized"
+          - fail:
+              when: "true"
+              message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
