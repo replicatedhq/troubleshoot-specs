@@ -125,6 +125,10 @@ spec:
         collectorName: "netstat-ports"
         command: "netstat"
         args: ["-t", "-u", "-l", "-p", "-n"]
+    - run:
+        collectorName: "sysctl"
+        command: "sysctl"
+        args: ["-a"]
     # Systemctl service statuses for CRI, Kubelet, and Firewall
     - run:
         collectorName: "systemctl-firewalld-status"
