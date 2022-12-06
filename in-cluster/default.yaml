@@ -84,6 +84,11 @@ spec:
         collectorName: rook-ceph-logs
         namespace: rook-ceph
         name: kots/rook
+    - logs:
+        collectorName: rqlite-logs
+        name: kots/rqlite/logs
+        selector:
+          - app=kotsadm-rqlite
     - secret:
         collectorName: kotsadm-replicated-registry
         name: kotsadm-replicated-registry # NOTE: this will not live under the kots/ directory like other collectors
