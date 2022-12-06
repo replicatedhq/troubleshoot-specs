@@ -94,10 +94,10 @@ spec:
         namespace: default
         podSpec:
           containers:
-          - name: rqlite-status
-            image: busybox:1
-            command: ["wget"]
-            args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/status?pretty", "-O-"]
+            - name: rqlite-status
+              image: busybox:1
+              command: ["wget"]
+              args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/status?pretty", "-O-"]
     - secret:
         collectorName: kotsadm-replicated-registry
         name: kotsadm-replicated-registry # NOTE: this will not live under the kots/ directory like other collectors

@@ -1,3 +1,4 @@
 .DS_Store
 *.swp
 *.tar.gz
+.pre-commit-config.yaml
