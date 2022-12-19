@@ -4,6 +4,7 @@ kind: SupportBundle
 metadata:
   name: cluster-down
 spec:
+  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/host/cluster-down.yaml
   hostCollectors:
     # System Info Collectors
     - blockDevices: {}
