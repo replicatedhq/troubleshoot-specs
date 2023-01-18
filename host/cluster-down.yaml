@@ -51,7 +51,7 @@ spec:
     - http:
         collectorName: curl-k8s-api-6443
         get:
-          url: https://localhost:6443
+          url: https://localhost:6443/healthz
           insecureSkipVerify: true
     - http:
         collectorName: curl-etcd-api-2379
@@ -366,12 +366,12 @@ spec:
         outcomes:
           - warn:
               when: "error"
-              message: Error connecting to https://localhost:6443/healthz
+              message: Unable to curl https://localhost:6443/healthz. Please, run `curl -k https://localhost:6443/healthz` to check further information.
           - pass:
               when: "statusCode == 200"
-              message: Connected to https://localhost:6443/healthz
+              message: curl -k https://localhost:6443/healthz returned HTTP CODE response 200.
           - warn:
-              message: "Unexpected response"
+              message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
     - http:
         checkName: curl-etcd-api-2379
         collectorName: curl-etcd-api-2379
