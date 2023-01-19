@@ -5,6 +5,13 @@ metadata:
   name: cluster-down
 spec:
   uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/host/cluster-down.yaml
+  collectors:
+    - copyFromHost:
+        collectorName: "copy kURL logs"
+        image: busybox:1
+        hostPath: "/var/log/kurl/"
+        name: "logs"
+        extractArchive: true
   hostCollectors:
     # System Info Collectors
     - blockDevices: {}

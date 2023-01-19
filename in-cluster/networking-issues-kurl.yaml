@@ -4,6 +4,12 @@ metadata:
   name: networking-issues-kurl
 spec:
   collectors:
+    - copyFromHost:
+        collectorName: "copy kURL logs"
+        image: busybox:1
+        hostPath: "/var/log/kurl/"
+        name: "logs"
+        extractArchive: true
     - logs:
         collectorName: kurl-control-plane
         name: kots/kurl/control-plane
