@@ -59,6 +59,10 @@ spec:
           url: http://localhost:2379
     # Run collectors for system information
     - run:
+        collectorName: k8s-api-healthz-6443
+        command: "curl"
+        args: ["-k", "https://localhost:6443/healthz?verbose"]
+    - run:
         collectorName: "free"
         command: "free"
         args: ["-m"]
@@ -407,3 +411,25 @@ spec:
           - fail:
               when: "true"
               message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
+    - textAnalyze:
+        checkName: Kubernetes API Healthz
+        fileName: host-collectors/run-host/k8s-api-healthz-6443.txt
+        regex: ".*healthz check passed*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "Kubernetes API healthz check did not passed. One or more components are not working."
+          - pass:
+              when: "true"
+              message: "Kubernetes API healthz check passed"
+    - textAnalyze:
+        checkName: ETCD Kubernetes API Healthz check
+        fileName: host-collectors/run-host/k8s-api-healthz-6443.txt
+        regex: ".*etcd ok*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "ETCD is not OK"
+          - pass:
+              when: "true"
+              message: "ETCD healthz check using Kubernetes API is OK"
