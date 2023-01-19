@@ -53,15 +53,15 @@ spec:
         get:
           url: https://localhost:6443/healthz
           insecureSkipVerify: true
-    - http:
-        collectorName: curl-etcd-api-2379
-        get:
-          url: http://localhost:2379
     # Run collectors for system information
     - run:
         collectorName: k8s-api-healthz-6443
         command: "curl"
         args: ["-k", "https://localhost:6443/healthz?verbose"]
+    - run:
+        collectorName: curl-etcd-health-2379
+        command: "curl"
+        args: ["-ki", "https://localhost:2379/health", "--cert", "/etc/kubernetes/pki/etcd/healthcheck-client.crt", "--key", "/etc/kubernetes/pki/etcd/healthcheck-client.key"]
     - run:
         collectorName: "free"
         command: "free"
@@ -376,18 +376,6 @@ spec:
               message: curl -k https://localhost:6443/healthz returned HTTP CODE response 200.
           - warn:
               message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
-    - http:
-        checkName: curl-etcd-api-2379
-        collectorName: curl-etcd-api-2379
-        outcomes:
-          - warn:
-              when: "error"
-              message: Error connecting to http://localhost:2379/
-          - pass:
-              when: "statusCode == 200"
-              message: Connected to http://localhost:2379/
-          - warn:
-              message: "Unexpected response"
   analyzers:
     - textAnalyze:
         checkName: Hostname Mismatch
@@ -433,3 +421,14 @@ spec:
           - pass:
               when: "true"
               message: "ETCD healthz check using Kubernetes API is OK"
+    - textAnalyze:
+        checkName: ETCD API Health
+        fileName: host-collectors/run-host/curl-etcd-health-2379.txt
+        regex: ".*\"health\":\"true\"*"
+        outcomes:
+          - fail:
+              when: "false"
+              message: "ETCD status returned: unhealthy"
+          - pass:
+              when: "true"
+              message: "ETCD is health"
