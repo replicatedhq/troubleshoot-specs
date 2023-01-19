@@ -431,4 +431,4 @@ spec:
               message: "ETCD status returned: unhealthy"
           - pass:
               when: "true"
-              message: "ETCD is health"
+              message: "ETCD status returned: healthy"
