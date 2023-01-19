@@ -412,24 +412,24 @@ spec:
               when: "true"
               message: "CNI plugin not initialized: there may be a problem with the CNI configuration on the host, check /etc/cni/net.d/*.conflist against a known good configuration"
     - textAnalyze:
-        checkName: Kubernetes API Healthz
+        checkName: Kubernetes API health check
         fileName: host-collectors/run-host/k8s-api-healthz-6443.txt
         regex: ".*healthz check passed*"
         outcomes:
           - fail:
               when: "false"
-              message: "Kubernetes API healthz check did not passed. One or more components are not working."
+              message: "Kubernetes API health check did not pass. One or more components are not working."
           - pass:
               when: "true"
-              message: "Kubernetes API healthz check passed"
+              message: "Kubernetes API health check passed"
     - textAnalyze:
-        checkName: ETCD Kubernetes API Healthz check
+        checkName: ETCD Kubernetes API health check
         fileName: host-collectors/run-host/k8s-api-healthz-6443.txt
         regex: ".*etcd ok*"
         outcomes:
           - fail:
               when: "false"
-              message: "ETCD is not OK"
+              message: "ETCD is unhealthy"
           - pass:
               when: "true"
               message: "ETCD healthz check using Kubernetes API is OK"
