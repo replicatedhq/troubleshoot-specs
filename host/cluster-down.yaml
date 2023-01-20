@@ -223,6 +223,10 @@ spec:
         collectorName: "crictl-logs-haproxy"
         command: "sh"
         args: ["-c", "crictl logs $(crictl ps -a --name haproxy -l | awk 'NR!=1 {print $1}') 2>&1"]
+    - run:
+        collectorName: "crictl-logs-haproxy-previous"
+        command: "sh"
+        args: ["-c", "crictl logs -p $(crictl ps -a --name haproxy -l | awk 'NR!=1 {print $1}') 2>&1"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
