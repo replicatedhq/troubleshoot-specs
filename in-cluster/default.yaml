@@ -89,6 +89,10 @@ spec:
         name: kots/rqlite/logs
         selector:
           - app=kotsadm-rqlite
+    - logs:
+        collectorName: projectcontour-logs
+        namespace: projectcontour
+        name: projectcontour/logs
     - runPod:
         name: rqlite-status
         namespace: default
