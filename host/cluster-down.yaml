@@ -202,6 +202,7 @@ spec:
         collectorName: "crictl-logs-kube-scheduler"
         command: "sh"
         args: ["-c", "crictl logs $(crictl ps -a --name kube-scheduler -l | awk 'NR!=1 {print $1}') 2>&1"]
+    # Logs for haproxy (Used by kURL's internal load balancing feature)
     - run:
         collectorName: "crictl-logs-haproxy"
         command: "sh"
