@@ -189,6 +189,10 @@ spec:
         image: alpine
         imagePullPolicy: IfNotPresent
         timeout: 5m
+    - logs:
+        collectorName: projectcontour-logs
+        namespace: projectcontour
+        name: projectcontour/logs
   analyzers:
     - containerRuntime:
         outcomes:
