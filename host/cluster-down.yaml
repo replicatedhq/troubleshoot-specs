@@ -185,6 +185,27 @@ spec:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
+    # Logs for K8s Control Plane
+    - run:
+        collectorName: "crictl-logs-apiserver"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name apiserver -l | awk 'NR!=1 {print $1}') 2>&1"]
+    - run:
+        collectorName: "crictl-logs-etcd"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name etcd -l | awk 'NR!=1 {print $1}') 2>&1"]
+    - run:
+        collectorName: "crictl-logs-kube-controller-manager"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name kube-controller-manager -l | awk 'NR!=1 {print $1}') 2>&1"]
+    - run:
+        collectorName: "crictl-logs-kube-scheduler"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name kube-scheduler -l | awk 'NR!=1 {print $1}') 2>&1"]
+    - run:
+        collectorName: "crictl-logs-haproxy"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name haproxy -l | awk 'NR!=1 {print $1}') 2>&1"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
