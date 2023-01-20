@@ -4,13 +4,6 @@ kind: SupportBundle
 metadata:
   name: networking-issues-non-airgap
 spec:
-  collectors:
-    - copyFromHost:
-        collectorName: "copy kURL logs"
-        image: busybox:1
-        hostPath: "/var/log/kurl/"
-        name: "logs"
-        extractArchive: true
   hostCollectors:
     - ipv4Interfaces: {}
     - certificate:
