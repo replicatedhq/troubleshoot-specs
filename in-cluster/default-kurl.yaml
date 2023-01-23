@@ -259,7 +259,7 @@ spec:
               message: Weave is not ready
           - pass:
               message: Weave is ready
-        regex: "Status: ready"
+        regex: 'Status: ready'
     - textAnalyze:
         checkName: Weave Report
         exclude: ""
@@ -326,11 +326,11 @@ spec:
           - pass:
               when: "false"
               message: "No block-device conflicts detected"
-        regex: ".*is apparently in use by the system;.*"
+        regex: '.*is apparently in use by the system;.*'
     - textAnalyze:
         checkName: Minio disk full
         fileName: cluster-resources/pods/logs/kurl/registry-*/registry.log
-        regex: ".*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*"
+        regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
         outcomes:
           - fail:
               when: "true"
