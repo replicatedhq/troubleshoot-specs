@@ -174,6 +174,41 @@ spec:
         imagePullPolicy: IfNotPresent
         timeout: 1m
     - configMap:
+        collectorName: coredns
+        name: coredns
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kube-proxy
+        name: kube-proxy
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kubeadm-config
+        name: kubeadm-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kubelet-config
+        name: kubelet-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-config
+        name: kurl-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: weave-net
+        name: weave-net
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: ekco-config
+        name: ekco-config
+        namespace: kurl
+        includeAllData: true
+    - configMap:
         collectorName: kurl-current-config
         name: kurl-current-config # NOTE: this will not live under the kots/ directory like other collectors
         namespace: kurl
@@ -224,7 +259,7 @@ spec:
               message: Weave is not ready
           - pass:
               message: Weave is ready
-        regex: 'Status: ready'
+        regex: "Status: ready"
     - textAnalyze:
         checkName: Weave Report
         exclude: ""
@@ -291,11 +326,11 @@ spec:
           - pass:
               when: "false"
               message: "No block-device conflicts detected"
-        regex: '.*is apparently in use by the system;.*'
+        regex: ".*is apparently in use by the system;.*"
     - textAnalyze:
         checkName: Minio disk full
         fileName: cluster-resources/pods/logs/kurl/registry-*/registry.log
-        regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
+        regex: ".*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*"
         outcomes:
           - fail:
               when: "true"
