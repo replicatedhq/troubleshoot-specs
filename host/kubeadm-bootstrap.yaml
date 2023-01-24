@@ -1,0 +1,30 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: kubeadm-bootstrap
+spec:
+  hostCollectors:
+    - run:
+        collectorName: "kubeadm.conf"
+        command: "cat"
+        args: ["/opt/replicated/kubeadm.conf"]
+    - run:
+        collectorName: "kubeadm-init-raw.yaml"
+        command: "cat"
+        args: ["/opt/replicated/kubeadm-init-raw.yaml"]
+    - run:
+        collectorName: "kubeadm-flags.env"
+        command: "cat"
+        args: ["/var/lib/kubelet/kubeadm-flags.env"]
+    - run:
+        collectorName: "kurl-host-preflights"
+        command: "tail"
+        args: ["-n", "+1", "/var/lib/kurl/host-preflights/*"]
+    - run:
+        collectorName: "kubeadm-kustomize-patches"
+        command: "sh"
+        args: ["-c", "find /var/lib/kurl/kustomize -type f -exec tail -n +1 {} +;"]
+    - run:
+        collectorName: "tmp-kubeadm.conf"
+        command: "cat"
+        args: ["/var/lib/kubelet/tmp-kubeadm.conf"]
