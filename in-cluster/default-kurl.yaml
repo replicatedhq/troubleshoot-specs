@@ -351,3 +351,14 @@ spec:
           - pass:
               when: "false"
               message: "You are not using a Rook versions < 1.4 and/or your Ceph status is OK"
+    - textAnalyze:
+        checkName: Rook rbd filesystem consistency
+        fileName: /kots/rook/rook-ceph-agent-*.log
+        regex: 'UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY.'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "One or more rook rbd(s) were detected to have filesystem inconsistencies and require manual intervention"
+          - pass:
+              when: "false"
+              message: "Rook filesystem consistency ok"
