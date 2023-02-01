@@ -362,5 +362,3 @@ spec:
           - pass:
               when: "false"
               message: "Rook filesystem consistency ok"
-
-
