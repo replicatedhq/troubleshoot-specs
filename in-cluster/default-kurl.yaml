@@ -338,3 +338,16 @@ spec:
           - pass:
               when: "false"
               message: "Minio Disk Ok"
+    - textAnalyze:
+        checkName: Known issue with Rook < 1.4
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: /ceph/status.json
+        regex: '\"ceph_release\": \"nautilus\"|\"status\": \"HEALTH_WARN\"'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "If you have been removing and adding nodes then, you might want ensure that you are not facing the scenario described in the community topic: https://community.replicated.com/t/1099"
+          - pass:
+              when: "false"
+              message: "You are not using a Rook versions < 1.4 and/or your Ceph status is OK"
