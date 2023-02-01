@@ -356,7 +356,7 @@ spec:
         fileName: /kots/rook/rook-ceph-agent-*.log
         regex: 'UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY.'
         outcomes:
-          - warn:
+          - fail:
               when: "true"
               message: "One or more rook rbd(s) were detected to have filesystem inconsistencies and require manual intervention"
           - pass:
