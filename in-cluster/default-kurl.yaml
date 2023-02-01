@@ -350,4 +350,4 @@ spec:
               message: "If you have been removing and adding nodes then, you might want ensure that you are not facing the scenario described in the community topic: https://community.replicated.com/t/1099"
           - pass:
               when: "false"
-              message: "You are not using a Rook versions < 1.4 or your Ceph status is OK"
+              message: "You are not using a Rook versions < 1.4 and/or your Ceph status is OK"
