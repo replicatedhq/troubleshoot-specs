@@ -119,7 +119,7 @@ spec:
         command: "iptables"
         args: ["-L", "-v"]
     - run:
-        collectorName: "iptables"
+        collectorName: "iptables-version"
         command: "iptables"
         args: ["-V"]
     - run:
