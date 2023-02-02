@@ -119,6 +119,10 @@ spec:
         command: "iptables"
         args: ["-L", "-v"]
     - run:
+        collectorName: "iptables-version"
+        command: "iptables"
+        args: ["-V"]
+    - run:
         collectorName: "ipvsadm"
         command: "ipvsadm"
         args: ["-l", "-n"]
