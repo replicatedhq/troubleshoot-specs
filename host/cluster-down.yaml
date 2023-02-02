@@ -123,6 +123,10 @@ spec:
         command: "iptables"
         args: ["-V"]
     - run:
+        collectorName: "nftables-list"
+        command: "nft"
+        args: ["list", "table", "filter"]
+    - run:
         collectorName: "ipvsadm"
         command: "ipvsadm"
         args: ["-l", "-n"]
