@@ -189,7 +189,33 @@ spec:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
-    # Logs for K8s Control Plane
+    # Docker logs for K8s Control Plane
+    - run:
+        collectorName: "docker-logs-apiserver"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=kube-apiserver -q -l) 2>&1"]
+    - run:
+        collectorName: "docker-logs-kube-scheduler"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=kube-scheduler -q -l) 2>&1"]
+    - run:
+        collectorName: "docker-logs-kube-controller-manager"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=kube-controller-manager -q -l) 2>&1"]
+    - run:
+        collectorName: "docker-logs-etcd"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=etcd -q -l) 2>&1"]
+    # Docker logs for haproxy (Used by kURL's internal load balancing feature)
+    - run:
+        collectorName: "docker-logs-haproxy"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=haproxy -q -l) 2>&1"]
+    - run:
+        collectorName: "docker-logs-haproxy-previous"
+        command: "sh"
+        args: ["-c", "docker logs $(docker ps -a --filter label=io.kubernetes.container.name=haproxy -q -l) 2>&1"]
+    # Containerd logs for K8s Control Plane
     - run:
         collectorName: "crictl-logs-apiserver"
         command: "sh"
