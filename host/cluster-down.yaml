@@ -257,6 +257,16 @@ spec:
         collectorName: "crictl-logs-haproxy-previous"
         command: "sh"
         args: ["-c", "crictl logs -p $(crictl ps -a --name haproxy -l --quiet) 2>&1"]
+    # Gathering hostname info to help troubleshoot scenarios where the hostname mismatch
+    - run:
+        collectorName: "hostnames"
+        command: "sh"
+        args:
+          - -c
+          - |
+            echo "hostname = $(hostname)"
+            echo "/proc/sys/kernel/hostname = $(cat /proc/sys/kernel/hostname)"
+            echo "uname -n = $(uname -n)"
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
