@@ -262,6 +262,16 @@ spec:
         collectorName: "sysctl-all"
         command: "sh"
         args: ["-c", "sysctl --all 2>/dev/null"]
+    # Gathering hostname info to help troubleshoot scenarios where the hostname mismatch
+    - run:
+        collectorName: "hostnames"
+        command: "sh"
+        args:
+          - -c
+          - |
+            echo "hostname = $(hostname)"
+            echo "/proc/sys/kernel/hostname = $(cat /proc/sys/kernel/hostname)"
+            echo "uname -n = $(uname -n)"
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
