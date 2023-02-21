@@ -257,6 +257,11 @@ spec:
         collectorName: "crictl-logs-haproxy-previous"
         command: "sh"
         args: ["-c", "crictl logs -p $(crictl ps -a --name haproxy -l --quiet) 2>&1"]
+    # sysctl parameters
+    - run:
+        collectorName: "sysctl-all"
+        command: "sh"
+        args: ["-c", "sysctl --all 2>/dev/null"]
     # Gathering hostname info to help troubleshoot scenarios where the hostname mismatch
     - run:
         collectorName: "hostnames"
