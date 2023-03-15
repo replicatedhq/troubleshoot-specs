@@ -228,6 +228,10 @@ spec:
         collectorName: projectcontour-logs
         namespace: projectcontour
         name: projectcontour/logs
+    - http:
+        collectorName: replicated.app-health-check
+        get:
+          url: https://replicated.app/
   analyzers:
     - containerRuntime:
         outcomes:
@@ -362,3 +366,16 @@ spec:
           - pass:
               when: "false"
               message: "Rook filesystem consistency ok"
+    - jsonCompare:
+        checkName: https://replicated.app host health check
+        fileName: replicated.app-health-check.json
+        path: "response.status"
+        value: "200"
+        outcomes:
+          - fail:
+              when: "false"
+              message: https://replicated.app is unhealthy. License and software update checks from replicated will fail. If this is an airgapped environment, please check your proxy settings.
+              uri: https://kurl.sh/docs/install-with-kurl/proxy-installs
+          - pass:
+              when: "true"
+              message: https://replicated.app host is healthy
