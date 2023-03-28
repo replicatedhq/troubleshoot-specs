@@ -5,21 +5,6 @@ metadata:
   name: cluster-down
 spec:
   uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/host/cluster-down.yaml
-  collectors:
-    # kURL Logs
-    - copyFromHost:
-        collectorName: "copy kURL logs"
-        image: busybox:1
-        hostPath: "/var/log/kurl/"
-        name: "logs"
-        extractArchive: true
-    # Kuberenets apiserver audit logs
-    - copyFromHost:
-        collectorName: "copy apiserver audit logs"
-        image: busybox:1
-        hostPath: "/var/log/apiserver/"
-        name: "logs"
-        extractArchive: true
   hostCollectors:
     # System Info Collectors
     - blockDevices: {}
@@ -287,6 +272,36 @@ spec:
             echo "hostname = $(hostname)"
             echo "/proc/sys/kernel/hostname = $(cat /proc/sys/kernel/hostname)"
             echo "uname -n = $(uname -n)"
+    # Collect apiserver audit logs
+    - run:
+        collectorName: "apiserver-audit-logs"
+        command: "sh"
+        args:
+          - -c
+          - |
+            cd /var/log/apiserver
+            for file in $(ls -1tr); do
+              if [ -f "$file" ]; then
+                echo "=== $file ==="
+                cat "$file"
+                echo ""
+              fi
+            done
+    # Collect kURL installer logs
+    - run:
+        collectorName: "kurl-logs"
+        command: "sh"
+        args:
+          - -c
+          - |
+            cd /var/log/kurl
+            for file in $(ls -1tr); do
+              if [ -f "$file" ]; then
+                echo "=== $file ==="
+                cat "$file"
+                echo ""
+              fi
+            done
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
