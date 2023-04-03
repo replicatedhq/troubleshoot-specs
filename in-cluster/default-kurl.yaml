@@ -29,7 +29,7 @@ spec:
     - exec:
         collectorName: kotsadm-rqlite-db
         name: kots/admin_console
-        containerName: rqlite
+        containerName: kotsadm-rqlite
         selector:
           - app=kotsadm-rqlite
         command:
