@@ -4,6 +4,8 @@ metadata:
   name: default
 spec:
   collectors:
+    # Note: apiserver logs are owned by root so for this collector
+    # to succeed it requires sudo privileges for the user
     - copyFromHost:
         collectorName: "copy apiserver audit logs"
         image: busybox:1
