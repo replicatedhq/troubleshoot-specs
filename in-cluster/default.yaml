@@ -6,7 +6,7 @@ spec:
   collectors:
     - clusterInfo: {}
     - clusterResources: {}
-    - exec:
+    - exec: # this is removable when we don't need to support kots <= 1.87
         args:
           - "-U"
           - kotsadm
@@ -21,7 +21,6 @@ spec:
     - exec:
         collectorName: kotsadm-rqlite-db
         name: kots/admin_console
-        containerName: kotsadm-rqlite
         selector:
           - app=kotsadm-rqlite
         command:
