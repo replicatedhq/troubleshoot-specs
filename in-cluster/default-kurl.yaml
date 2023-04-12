@@ -5,8 +5,14 @@ metadata:
 spec:
   collectors:
     - copyFromHost:
+        collectorName: "copy apiserver audit logs"
+        image: alpine
+        hostPath: "/var/log/apiserver/"
+        name: "logs"
+        extractArchive: true
+    - copyFromHost:
         collectorName: "copy kURL logs"
-        image: busybox:1
+        image: alpine
         hostPath: "/var/log/kurl/"
         name: "logs"
         extractArchive: true

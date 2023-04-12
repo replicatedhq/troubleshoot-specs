@@ -272,6 +272,16 @@ spec:
             echo "hostname = $(hostname)"
             echo "/proc/sys/kernel/hostname = $(cat /proc/sys/kernel/hostname)"
             echo "uname -n = $(uname -n)"
+    # Collect apiserver audit logs
+    # Note: apiserver logs are owned by root so for this collector
+    # to succeed it requires sudo privileges for the user
+    - copy:
+        collectorName: "apiserver-audit-logs"
+        path: /var/log/apiserver/k8s-audit*
+    # Collect kURL installer logs
+    - copy:
+        collectorName: "kurl-logs"
+        path: /var/log/kurl/*
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
