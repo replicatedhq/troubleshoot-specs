@@ -14,6 +14,7 @@ spec:
     - ipv4Interfaces: {}
     - memory: {}
     - time: {}
+    - ipv4Interfaces: {}
     # Certificate Info for ETCD and K8s API
     - certificate:
         collectorName: k8s-api-keypair
@@ -85,7 +86,7 @@ spec:
     - run:
         collectorName: "iostat"
         command: "iostat"
-        args: []
+        args: ["-x"]
     - run:
         collectorName: "sestatus"
         command: "sestatus"
@@ -138,6 +139,10 @@ spec:
         collectorName: "netstat-ports"
         command: "netstat"
         args: ["-t", "-u", "-l", "-p", "-n"]
+    - run:
+        collectorName: "netstat-route-table"
+        command: "netstat"
+        args: ["-r", "-n"]
     - run:
         collectorName: "sysctl"
         command: "sysctl"
@@ -282,71 +287,6 @@ spec:
     - copy:
         collectorName: "kurl-logs"
         path: /var/log/kurl/*
-    #### cri.yaml ####
-    - diskUsage:
-        collectorName: root
-        path: /
-    - diskUsage:
-        collectorName: tmp
-        path: /tmp
-    - diskUsage:
-        collectorName: var-lib-kubelet
-        path: /var/lib/kubelet
-    - diskUsage:
-        collectorName: var-lib-docker
-        path: /var/lib/docker
-    - diskUsage:
-        collectorName: var-lib-containerd
-        path: /var/lib/containerd
-    - run:
-        collectorName: "docker-info"
-        command: "docker"
-        args: ["info"]
-    - run:
-        collectorName: "crictl-info"
-        command: "crictl"
-        args: ["info"]
-    - run:
-        collectorName: "crictl-ps"
-        command: "crictl"
-        args: ["ps", "-a"]
-    - run:
-        collectorName: "docker-ps"
-        command: "docker"
-        args: ["ps", "-a"]
-    - run:
-        collectorName: "docker-system-df"
-        command: "docker"
-        args: ["system", "df", "-v"]
-    - run:
-        collectorName: "systemctl-docker-status"
-        command: "systemctl"
-        args: ["status", "docker"]
-    - run:
-        collectorName: "systemctl-kubelet-status"
-        command: "systemctl"
-        args: ["status", "kubelet"]
-    - run:
-        collectorName: "systemctl-containerd-status"
-        command: "systemctl"
-        args: ["status", "containerd"]
-    # Logs for CRI, Kubelet, Kernel
-    - run:
-        collectorName: "journalctl-containerd"
-        command: "journalctl"
-        args: ["-u", "containerd", "--no-pager", "-S", "7 days ago"]
-    - run:
-        collectorName: "journalctl-kubelet"
-        command: "journalctl"
-        args: ["-u", "kubelet", "--no-pager", "-S", "7 days ago"]
-    - run:
-        collectorName: "journalctl-docker"
-        command: "journalctl"
-        args: ["-u", "docker", "--no-pager", "-S", "7 days ago"]
-    - run:
-        collectorName: "journalctl-dmesg"
-        command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
     ### kubeadm-bootstrap.yaml ###
     - run:
         collectorName: "kubeadm.conf"
@@ -373,15 +313,6 @@ spec:
         command: "cat"
         args: ["/var/lib/kubelet/tmp-kubeadm.conf"]
     ### networking-issues.yaml ###
-    - ipv4Interfaces: {}
-    - certificate:
-        collectorName: k8s-api-keypair
-        certificatePath: /etc/kubernetes/pki/apiserver.crt
-        keyPath: /etc/kubernetes/pki/apiserver.key
-    - certificate:
-        collectorName: etcd-keypair
-        certificatePath: /etc/kubernetes/pki/etcd/server.crt
-        keyPath: /etc/kubernetes/pki/etcd/server.key
     - http:
         collectorName: curl-api-replicated-com
         get:
@@ -406,59 +337,8 @@ spec:
         collectorName: curl-replicated-app
         get:
           url: https://replicated.app/healthz
-    - run:
-        collectorName: "sysctl"
-        command: "sysctl"
-        args: ["-a"]
-    - run:
-        collectorName: "iptables"
-        command: "iptables"
-        args: ["-L", "-v"]
-    - run:
-        collectorName: "netstat-route-table"
-        command: "netstat"
-        args: ["-r", "-n"]
-    - run:
-        collectorName: "netstat-ports"
-        command: "netstat"
-        args: ["-t", "-u", "-l", "-p", "-n"]
-    - run:
-        collectorName: "systemctl-firewalld-status"
-        command: "systemctl"
-        args: ["status", "firewalld"]
-    - run:
-        collectorName: "journalctl-dmesg"
-        command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
     ### resource-contention.yaml ###
     # System Info Collectors
-    - blockDevices: {}
-    - cpu: {}
-    - hostOS: {}
-    - hostServices: {}
-    - ipv4Interfaces: {}
-    - memory: {}
-    - time: {}
-    - run:
-        collectorName: "uptime"
-        command: "uptime"
-        args: []
-    - run:
-        collectorName: "free"
-        command: "free"
-        args: ["-m"]
-    - run:
-        collectorName: "top"
-        command: "top"
-        args: ["-b", "-n", "1"]
-    - run:
-        collectorName: "uname"
-        command: "uname"
-        args: ["-a"]
-    - run:
-        collectorName: "df"
-        command: "df"
-        args: ["-h"]
     - run:
         collectorName: "du-root"
         command: "sh"
@@ -468,25 +348,13 @@ spec:
         command: "mount"
         args: ["-l"]
     - run:
-        collectorName: "iostat"
-        command: "iostat"
-        args: ["-x"]
-    - run:
         collectorName: "vmstat"
         command: "vmstat"
         args: ["-w"]
     - run:
-        collectorName: "iostat"
-        command: "iostat"
-        args: ["-x"]
-    - run:
         collectorName: "ps-high-load"
         command: "sh"
         args: ["-c", "ps -eo s,user,cmd | grep ^[RD] | sort | uniq -c | sort -nbr | head -20"]
-    - run:
-        collectorName: "journalctl-dmesg"
-        command: "journalctl"
-        args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
     - filesystemPerformance:
         collectorName: filesystem-latency-two-minute-benchmark
         timeout: 2m
@@ -501,23 +369,6 @@ spec:
         backgroundReadIOPS: 50
         backgroundReadIOPSJobs: 1
         exclude: true
-    # Systemd Service Configurations for CRI, Kubelet
-    - run:
-        collectorName: "systemctl-cat-journald"
-        command: "systemctl"
-        args: ["cat", "systemd-journald"]
-    - run:
-        collectorName: "systemctl-cat-docker"
-        command: "systemctl"
-        args: ["cat", "docker"]
-    - run:
-        collectorName: "systemctl-cat-containerd"
-        command: "systemctl"
-        args: ["cat", "containerd"]
-    - run:
-        collectorName: "systemctl-cat-kubelet"
-        command: "systemctl"
-        args: ["cat", "kubelet"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
@@ -710,48 +561,6 @@ spec:
           - warn:
               message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
     ### networking-issues.yaml ###
-    - certificate:
-        collectorName: k8s-api-keypair
-        outcomes:
-          - fail:
-              when: "key-pair-missing"
-              message: Certificate key pair not found in /etc/kubernetes/pki/apiserver.*
-          - fail:
-              when: "key-pair-switched"
-              message: Cert and key pair are switched
-          - fail:
-              when: "key-pair-encrypted"
-              message: Private key is encrypted
-          - fail:
-              when: "key-pair-mismatch"
-              message: Cert and key do not match
-          - fail:
-              when: "key-pair-invalid"
-              message: Certificate key pair is invalid
-          - pass:
-              when: "key-pair-valid"
-              message: Certificate key pair is valid
-    - certificate:
-        collectorName: etcd-keypair
-        outcomes:
-          - fail:
-              when: "key-pair-missing"
-              message: Certificate key pair not found in /etc/kubernetes/pki/etcd/server.*
-          - fail:
-              when: "key-pair-switched"
-              message: Cert and key pair are switched
-          - fail:
-              when: "key-pair-encrypted"
-              message: Private key is encrypted
-          - fail:
-              when: "key-pair-mismatch"
-              message: Cert and key do not match
-          - fail:
-              when: "key-pair-invalid"
-              message: Certificate key pair is invalid
-          - pass:
-              when: "key-pair-valid"
-              message: Certificate key pair is valid
     - http:
         checkName: curl-api-replicated-com
         collectorName: curl-api-replicated-com
@@ -762,6 +571,18 @@ spec:
           - pass:
               when: "statusCode == 200"
               message: Connected to https://api.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-get-replicated-com
+        collectorName: curl-get-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://get.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://get.replicated.com/healthz
           - warn:
               message: "Unexpected response"
     - http:
@@ -813,22 +634,6 @@ spec:
           - warn:
               message: "Unexpected response"
     ### resource-contention.yaml ###
-    - cpu:
-        checkName: "Number of CPUs"
-        outcomes:
-          - warn:
-              when: "count < 4"
-              message: At least 4 CPU cores are recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
-          - pass:
-              message: This server has at least 4 CPU cores
-    - memory:
-        checkName: "Amount of Memory"
-        outcomes:
-          - warn:
-              when: "< 8G"
-              message: At least 8G of memory is recommended for kURL https://kurl.sh/docs/install-with-kurl/system-requirements
-          - pass:
-              message: The system has at least 8G of memory
     - filesystemPerformance:
         collectorName: filesystem-latency-two-minute-benchmark
         outcomes:
