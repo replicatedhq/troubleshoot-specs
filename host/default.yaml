@@ -287,7 +287,6 @@ spec:
     - copy:
         collectorName: "kurl-logs"
         path: /var/log/kurl/*
-    ### kubeadm-bootstrap.yaml ###
     - run:
         collectorName: "kubeadm.conf"
         command: "cat"
@@ -312,7 +311,6 @@ spec:
         collectorName: "tmp-kubeadm.conf"
         command: "cat"
         args: ["/var/lib/kubelet/tmp-kubeadm.conf"]
-    ### networking-issues.yaml ###
     - http:
         collectorName: curl-api-replicated-com
         get:
@@ -337,7 +335,6 @@ spec:
         collectorName: curl-replicated-app
         get:
           url: https://replicated.app/healthz
-    ### resource-contention.yaml ###
     # System Info Collectors
     - run:
         collectorName: "du-root"
@@ -560,7 +557,6 @@ spec:
               message: curl -k https://localhost:6443/healthz returned HTTP CODE response 200.
           - warn:
               message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
-    ### networking-issues.yaml ###
     - http:
         checkName: curl-api-replicated-com
         collectorName: curl-api-replicated-com
@@ -633,7 +629,6 @@ spec:
               message: Connected to https://replicated.app/healthz
           - warn:
               message: "Unexpected response"
-    ### resource-contention.yaml ###
     - filesystemPerformance:
         collectorName: filesystem-latency-two-minute-benchmark
         outcomes:
