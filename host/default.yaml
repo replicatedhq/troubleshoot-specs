@@ -2,9 +2,9 @@
 apiVersion: troubleshoot.sh/v1beta2
 kind: SupportBundle
 metadata:
-  name: cluster-down
+  name: default
 spec:
-  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/host/cluster-down.yaml
+  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/host/default.yaml
   hostCollectors:
     # System Info Collectors
     - blockDevices: {}
@@ -14,6 +14,7 @@ spec:
     - ipv4Interfaces: {}
     - memory: {}
     - time: {}
+    - ipv4Interfaces: {}
     # Certificate Info for ETCD and K8s API
     - certificate:
         collectorName: k8s-api-keypair
@@ -85,7 +86,7 @@ spec:
     - run:
         collectorName: "iostat"
         command: "iostat"
-        args: []
+        args: ["-x"]
     - run:
         collectorName: "sestatus"
         command: "sestatus"
@@ -138,6 +139,10 @@ spec:
         collectorName: "netstat-ports"
         command: "netstat"
         args: ["-t", "-u", "-l", "-p", "-n"]
+    - run:
+        collectorName: "netstat-route-table"
+        command: "netstat"
+        args: ["-r", "-n"]
     - run:
         collectorName: "sysctl"
         command: "sysctl"
@@ -282,6 +287,85 @@ spec:
     - copy:
         collectorName: "kurl-logs"
         path: /var/log/kurl/*
+    - run:
+        collectorName: "kubeadm.conf"
+        command: "cat"
+        args: ["/opt/replicated/kubeadm.conf"]
+    - run:
+        collectorName: "kubeadm-init-raw.yaml"
+        command: "cat"
+        args: ["/opt/replicated/kubeadm-init-raw.yaml"]
+    - run:
+        collectorName: "kubeadm-flags.env"
+        command: "cat"
+        args: ["/var/lib/kubelet/kubeadm-flags.env"]
+    - run:
+        collectorName: "kurl-host-preflights"
+        command: "tail"
+        args: ["-n", "+1", "/var/lib/kurl/host-preflights/*"]
+    - run:
+        collectorName: "kubeadm-kustomize-patches"
+        command: "sh"
+        args: ["-c", "find /var/lib/kurl/kustomize -type f -exec tail -n +1 {} +;"]
+    - run:
+        collectorName: "tmp-kubeadm.conf"
+        command: "cat"
+        args: ["/var/lib/kubelet/tmp-kubeadm.conf"]
+    - http:
+        collectorName: curl-api-replicated-com
+        get:
+          url: https://api.replicated.com/healthz
+    - http:
+        collectorName: curl-get-replicated-com
+        get:
+          url: https://get.replicated.com/healthz
+    - http:
+        collectorName: curl-registry-replicated-com
+        get:
+          url: https://registry.replicated.com/healthz
+    - http:
+        collectorName: curl-proxy-replicated-com
+        get:
+          url: https://proxy.replicated.com/healthz
+    - http:
+        collectorName: curl-k8s-kurl-sh
+        get:
+          url: https://k8s.kurl.sh/healthz
+    - http:
+        collectorName: curl-replicated-app
+        get:
+          url: https://replicated.app/healthz
+    # System Info Collectors
+    - run:
+        collectorName: "du-root"
+        command: "sh"
+        args: ["-c", "du -Shax / --exclude /proc | sort -rh | head -20"]
+    - run:
+        collectorName: "mount"
+        command: "mount"
+        args: ["-l"]
+    - run:
+        collectorName: "vmstat"
+        command: "vmstat"
+        args: ["-w"]
+    - run:
+        collectorName: "ps-high-load"
+        command: "sh"
+        args: ["-c", "ps -eo s,user,cmd | grep ^[RD] | sort | uniq -c | sort -nbr | head -20"]
+    - filesystemPerformance:
+        collectorName: filesystem-latency-two-minute-benchmark
+        timeout: 2m
+        directory: /var/lib/etcd
+        fileSize: 22Mi
+        operationSizeBytes: 2300
+        datasync: true
+        enableBackgroundIOPS: true
+        backgroundIOPSWarmupSeconds: 10
+        backgroundWriteIOPS: 300
+        backgroundWriteIOPSJobs: 6
+        backgroundReadIOPS: 50
+        backgroundReadIOPSJobs: 1
+        exclude: true
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
@@ -473,6 +557,87 @@ spec:
               message: curl -k https://localhost:6443/healthz returned HTTP CODE response 200.
           - warn:
               message: "Unexpected response. HTTP CODE response is not 200. Please, run `curl -ki https://localhost:6443/healthz` to check further information."
+    - http:
+        checkName: curl-api-replicated-com
+        collectorName: curl-api-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://api.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://api.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-get-replicated-com
+        collectorName: curl-get-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://get.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://get.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-registry-replicated-com
+        collectorName: curl-registry-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://registry.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://registry.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-proxy-replicated-com
+        collectorName: curl-proxy-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://proxy.replicated.com/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://proxy.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-k8s-kurl-sh
+        collectorName: curl-k8s-kurl-sh
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://k8s.kurl.sh/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://k8s.kurl.sh/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: curl-replicated-app
+        collectorName: curl-replicated-app
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://replicated.app/healthz
+          - pass:
+              when: "statusCode == 200"
+              message: Connected to https://replicated.app/healthz
+          - warn:
+              message: "Unexpected response"
+    - filesystemPerformance:
+        collectorName: filesystem-latency-two-minute-benchmark
+        outcomes:
+          - pass:
+              when: "p99 < 10ms"
+              message: "Write latency is ok (p99 target < 10ms)"
+          - warn:
+              message: "Write latency is high. p99 target >= 10ms)"
+        exclude: true
   analyzers:
     - textAnalyze:
         checkName: Hostname Mismatch
