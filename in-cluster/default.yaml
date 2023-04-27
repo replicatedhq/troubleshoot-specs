@@ -82,6 +82,10 @@ spec:
           - app=kotsadm-operator
         timeout: 10s
     - logs:
+        collectorName: velero-logs
+        namespace: velero
+        name: kots/velero
+    - logs:
         collectorName: kurl-control-plane
         name: kots/kurl/control-plane
         selector:
