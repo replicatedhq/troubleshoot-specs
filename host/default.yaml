@@ -352,20 +352,6 @@ spec:
         collectorName: "ps-high-load"
         command: "sh"
         args: ["-c", "ps -eo s,user,cmd | grep ^[RD] | sort | uniq -c | sort -nbr | head -20"]
-    - filesystemPerformance:
-        collectorName: filesystem-latency-two-minute-benchmark
-        timeout: 2m
-        directory: /var/lib/etcd
-        fileSize: 22Mi
-        operationSizeBytes: 2300
-        datasync: true
-        enableBackgroundIOPS: true
-        backgroundIOPSWarmupSeconds: 10
-        backgroundWriteIOPS: 300
-        backgroundWriteIOPSJobs: 6
-        backgroundReadIOPS: 50
-        backgroundReadIOPSJobs: 1
-        exclude: true
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
@@ -629,15 +615,6 @@ spec:
               message: Connected to https://replicated.app/healthz
           - warn:
               message: "Unexpected response"
-    - filesystemPerformance:
-        collectorName: filesystem-latency-two-minute-benchmark
-        outcomes:
-          - pass:
-              when: "p99 < 10ms"
-              message: "Write latency is ok (p99 target < 10ms)"
-          - warn:
-              message: "Write latency is high. p99 target >= 10ms)"
-        exclude: true
   analyzers:
     - textAnalyze:
         checkName: Hostname Mismatch
