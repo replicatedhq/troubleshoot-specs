@@ -253,6 +253,24 @@ spec:
         collectorName: "crictl-logs-kube-scheduler-previous"
         command: "sh"
         args: ["-c", "crictl logs -p $(crictl ps -a --name kube-scheduler -l --quiet) 2>&1"]
+    # Logs for kube-flannel
+    - run:
+        collectorName: "crictl-logs-kube-flannel"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name kube-flannel -l --quiet) 2>&1"]
+    - run:
+        collectorName: "crictl-logs-kube-flannel-previous"
+        command: "sh"
+        args: ["-c", "crictl logs -p $(crictl ps -a --name kube-flannel -l --quiet) 2>&1"]
+    # Logs for kube-proxy
+    - run:
+        collectorName: "crictl-logs-kube-proxy"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name kube-proxy -l --quiet) 2>&1"]
+    - run:
+        collectorName: "crictl-logs-kube-proxy-previous"
+        command: "sh"
+        args: ["-c", "crictl logs -p $(crictl ps -a --name kube-proxy -l --quiet) 2>&1"]
     # Logs for haproxy (Used by kURL's internal load balancing feature)
     - run:
         collectorName: "crictl-logs-haproxy"
