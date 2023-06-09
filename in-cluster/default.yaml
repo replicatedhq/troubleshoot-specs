@@ -196,6 +196,12 @@ spec:
           - app=minio
         namespace: minio
         name: kots/kurl/minio
+    - logs:
+        collectorName: ha-minio
+        selector:
+          - app=ha-minio
+        namespace: minio
+        name: kots/kurl/ha-minio
     - exec:
         args:
           - "http://goldpinger.kurl.svc.cluster.local:80/check_all"
