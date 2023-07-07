@@ -363,7 +363,7 @@ spec:
         checkName: Weave IP Allocation
         exclude: ""
         ignoreIfNoFiles: true
-        regex: 'IP Allocation was seeded by different peers'
+        regex: 'IP allocation was seeded by different peers'
         fileName: kots/kurl/weave/weave-net-*/weave.log
         outcomes:
           - fail:
