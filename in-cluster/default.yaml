@@ -359,19 +359,19 @@ spec:
           - pass:
               message: Weave is ready
         regex: '"Ready": true'
-    # TODO: Analysis results are false positives
-    # https://github.com/replicatedhq/troubleshoot-specs/issues/43
-    # - textAnalyze:
-    #     checkName: Weave IP Allocation
-    #     exclude: ""
-    #     ignoreIfNoFiles: true
-    #     fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
-    #     outcomes:
-    #       - fail:
-    #           message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
-    #       - pass:
-    #           message: Weave is ready, there are no IP allocation issues.
-    #     regex: '"IP Allocation was seeded by different peers": false'
+    - textAnalyze:
+        checkName: Weave IP Allocation
+        exclude: ""
+        ignoreIfNoFiles: true
+        regex: 'IP allocation was seeded by different peers'
+        fileName: kots/kurl/weave/weave-net-*/weave.log
+        outcomes:
+          - fail:
+              when: "true"
+              message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
+          - pass:
+              when: "false"
+              message: Weave is ready, there are no IP allocation issues.
     - textAnalyze:
         checkName: Inter-pod Networking
         exclude: ""
