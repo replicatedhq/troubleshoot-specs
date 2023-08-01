@@ -384,6 +384,10 @@ spec:
         backgroundReadIOPS: 50
         backgroundReadIOPSJobs: 1
         exclude: true
+    - run:
+        collectorName: "localhost-ips"
+        command: "sh"
+        args: ["-c", "host localhost"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
@@ -712,3 +716,14 @@ spec:
           - pass:
               when: "true"
               message: "ETCD status returned: healthy"
+    - textAnalyze:
+        checkName: Check if localhost resolves to 127.0.0.1
+        fileName: host-collectors/run-host/localhost-ips.txt
+        regex: 'localhost has address 127.0.0.1'
+        outcomes:
+          - fail:
+              when: "false"
+              message: "'localhost' does not resolve to 127.0.0.1 ip address"
+          - pass:
+              when: "true"
+              message: "'localhost' resolves to 127.0.0.1 ip address"
