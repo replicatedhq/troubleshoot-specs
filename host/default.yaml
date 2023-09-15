@@ -144,6 +144,10 @@ spec:
         command: "netstat"
         args: ["-r", "-n"]
     - run:
+        collectorName: "ip-route-table"
+        command: "ip"
+        args: ["route"]
+    - run:
         collectorName: "sysctl"
         command: "sysctl"
         args: ["-a"]
