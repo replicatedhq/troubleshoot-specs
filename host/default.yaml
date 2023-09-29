@@ -745,7 +745,7 @@ spec:
     - textAnalyze:
         checkName: Check if SELinux is enabled
         fileName: host-collectors/selinux-config/config
-        regex: 'SELINUX=enforcing'
+        regex: '(?m)^SELINUX=enforcing'
         ignoreIfNoFiles: true
         outcomes:
           - fail:
