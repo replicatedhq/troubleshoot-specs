@@ -151,6 +151,9 @@ spec:
         collectorName: "sysctl"
         command: "sysctl"
         args: ["-a"]
+    - copy:
+        collectorName: selinux-config
+        path: /etc/selinux/config
     # Systemctl service statuses for CRI, Kubelet, and Firewall
     - run:
         collectorName: "systemctl-firewalld-status"
@@ -739,3 +742,15 @@ spec:
           - pass:
               when: "true"
               message: "'localhost' resolves to 127.0.0.1 ip address"
+    - textAnalyze:
+        checkName: Check if SELinux is enabled
+        fileName: host-collectors/selinux-config/config
+        regex: 'SELINUX=enforcing'
+        ignoreIfNoFiles: true
+        outcomes:
+          - fail:
+              when: "true"
+              message: "SELinux is enabled when it should be disabled for kubernetes to work properly"
+          - pass:
+              when: "false"
+              message: "SELinux is disabled as expected"
