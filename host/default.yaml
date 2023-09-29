@@ -87,6 +87,7 @@ spec:
         collectorName: "iostat"
         command: "iostat"
         args: ["-x"]
+    # SELinux status
     - run:
         collectorName: "sestatus"
         command: "sestatus"
@@ -151,9 +152,6 @@ spec:
         collectorName: "sysctl"
         command: "sysctl"
         args: ["-a"]
-    - copy:
-        collectorName: selinux-config
-        path: /etc/selinux/config
     # Systemctl service statuses for CRI, Kubelet, and Firewall
     - run:
         collectorName: "systemctl-firewalld-status"
@@ -744,8 +742,8 @@ spec:
               message: "'localhost' resolves to 127.0.0.1 ip address"
     - textAnalyze:
         checkName: Check if SELinux is enabled
-        fileName: host-collectors/selinux-config/config
-        regex: '(?m)^SELINUX=enforcing'
+        fileName: host-collectors/run-host/sestatus.txt
+        regex: '(?m)^Current mode:\s+enforcing'
         ignoreIfNoFiles: true
         outcomes:
           - fail:
