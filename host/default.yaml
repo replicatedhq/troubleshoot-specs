@@ -87,6 +87,7 @@ spec:
         collectorName: "iostat"
         command: "iostat"
         args: ["-x"]
+    # SELinux status
     - run:
         collectorName: "sestatus"
         command: "sestatus"
@@ -739,3 +740,15 @@ spec:
           - pass:
               when: "true"
               message: "'localhost' resolves to 127.0.0.1 ip address"
+    - textAnalyze:
+        checkName: Check if SELinux is enabled
+        fileName: host-collectors/run-host/sestatus.txt
+        regex: '(?m)^Current mode:\s+enforcing'
+        ignoreIfNoFiles: true
+        outcomes:
+          - fail:
+              when: "true"
+              message: "SELinux is enabled when it should be disabled for kubernetes to work properly"
+          - pass:
+              when: "false"
+              message: "SELinux is disabled as expected"
