@@ -299,7 +299,7 @@ spec:
               message: EKCO is installed and running
     - textAnalyze:
         checkName: Check installed EKCO version for critical fixes
-        fileName: ekco-resources/ekco-resources.log
+        fileName: cluster-resources/deployments/kurl.json
         regexGroups: '"image": "replicated/ekco:v(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)"'
         outcomes:
           - warn:
@@ -399,8 +399,7 @@ spec:
               message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.
     - textAnalyze:
         checkName: longhorn multipath conflict
-        exclude: ""
-        ignoreIfNoFiless: true
+        ignoreIfNoFiles: true
         fileName: longhorn/longhorn-system/logs/longhorn-csi-plugin-*/longhorn-csi-plugin.log
         outcomes:
           - fail:
@@ -414,6 +413,7 @@ spec:
     - textAnalyze:
         checkName: Minio disk full
         fileName: cluster-resources/pods/logs/kurl/registry-*/registry.log
+        ignoreIfNoFiles: true
         regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
         outcomes:
           - fail:
@@ -438,6 +438,7 @@ spec:
     - textAnalyze:
         checkName: Rook rbd filesystem consistency
         fileName: /kots/rook/rook-ceph-agent-*.log
+        ignoreIfNoFiles: true
         regex: 'UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY.'
         outcomes:
           - fail:
