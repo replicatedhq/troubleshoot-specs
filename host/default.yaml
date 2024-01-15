@@ -285,6 +285,15 @@ spec:
         collectorName: "crictl-logs-haproxy-previous"
         command: "sh"
         args: ["-c", "crictl logs -p $(crictl ps -a --name haproxy -l --quiet) 2>&1"]
+    # Logs from ekco (Used by kURL to rotate certs and other tasks)
+    - run:
+        collectorName: "crictl-logs-ekco"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name ekc-operator -l --quiet) 2>&1"]
+    - run:
+        collectorName: "crictl-logs-ekco-previous"
+        command: "sh"
+        args: ["-c", "crictl logs -p $(crictl ps -a --name ekc-operator -l --quiet) 2>&1"]
     # sysctl parameters
     - run:
         collectorName: "sysctl-all"
