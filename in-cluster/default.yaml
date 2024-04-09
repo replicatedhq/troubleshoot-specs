@@ -128,6 +128,10 @@ spec:
         collectorName: rook-ceph-logs
         namespace: rook-ceph
         name: kots/rook
+    - logs:
+        collectorName: coredns-logs
+        namespace: kube-system
+        name: logs/coredns
     - exec:
         collectorName: weave-status
         command:
