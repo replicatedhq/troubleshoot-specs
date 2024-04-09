@@ -132,6 +132,8 @@ spec:
         collectorName: coredns-logs
         namespace: kube-system
         name: logs/coredns
+        selector:
+          - k8s-app=kube-dns
     - exec:
         collectorName: weave-status
         command:
