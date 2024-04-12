@@ -384,6 +384,10 @@ spec:
         collectorName: "ps-high-load"
         command: "sh"
         args: ["-c", "ps -eo s,user,cmd | grep ^[RD] | sort | uniq -c | sort -nbr | head -20"]
+    - run:
+        collectName: "ps-detect-antivirus-and-security-tools"
+        command: "sh"
+        args: [-c, "ps aux | grep -E 'clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio' | grep -v grep"]
     - filesystemPerformance:
         collectorName: filesystem-latency-two-minute-benchmark
         timeout: 2m
@@ -761,3 +765,15 @@ spec:
           - pass:
               when: "false"
               message: "SELinux is disabled as expected"
+    - textAnalyze:
+        checkName: Detect Threat Management and Network Security Tools 
+        filename: host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt
+        regex: '\b(clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio)\b'
+        ignoreIfNoFiles: true
+        outcomes:
+          - warn:
+              when: "true"
+              message: "Antivirus or Network Security tools detected. These tools can interfere with kubernetes operation."
+          - pass:
+              when: "false"
+              message: "No Antivirus or Network Security tools detected."
