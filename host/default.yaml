@@ -766,7 +766,7 @@ spec:
               when: "false"
               message: "SELinux is disabled as expected"
     - textAnalyze:
-        checkName: Detect Threat Management and Network Security Tools 
+        checkName: "Detect Threat Management and Network Security Tools"
         fileName: host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt
         regex: '\b(clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio)\b'
         ignoreIfNoFiles: true
