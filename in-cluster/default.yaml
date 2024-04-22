@@ -262,6 +262,15 @@ spec:
               image: busybox:1
               command: ["wget"]
               args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/status?pretty", "-O-"]
+    - runPod:
+        name: rqlite-nodes
+        namespace: default
+        podSpec:
+          containers:
+            - name: rqlite-nodes
+              image: busybox:1
+              command: ["wget"]
+              args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/nodes?pretty&ver=2", "-O-"]
     - http:
         collectorName: replicated.app-health-check
         get:
