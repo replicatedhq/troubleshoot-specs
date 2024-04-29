@@ -145,6 +145,26 @@ spec:
         command: "netstat"
         args: ["-r", "-n"]
     - run:
+        collectorName: "resolvectl-status"
+        command: "resolvectl"
+        args: ["status"]
+    - run:
+        collectorName: "resolv-conf"
+        command: "cat"
+        args: ["/etc/resolv.conf"]
+    - run:
+        collectorName: "systemd-resolved-conf"
+        command: "cat"
+        args: ["/etc/systemd/resolved.conf"]
+    - run:
+        collectorName: "nsswitch-conf"
+        command: "cat"
+        args: ["/etc/nsswitch.conf"]
+    - run:
+        collectorName: "hosts"
+        command: "cat"
+        args: ["/etc/hosts"]
+    - run:
         collectorName: "ip-route-table"
         command: "ip"
         args: ["route"]
@@ -157,6 +177,10 @@ spec:
         collectorName: "systemctl-firewalld-status"
         command: "systemctl"
         args: ["status", "firewalld"]
+    - run:
+        collectorName: "systemctl-resolved-status"
+        command: "systemctl"
+        args: ["status", "systemd-resolved"]
     - run:
         collectorName: "systemctl-docker-status"
         command: "systemctl"
@@ -174,6 +198,10 @@ spec:
         collectorName: "systemctl-cat-journald"
         command: "systemctl"
         args: ["cat", "systemd-journald"]
+    - run:
+        collectorName: "systemctl-cat-resolved"
+        command: "systemctl"
+        args: ["cat", "systemd-resolved"]
     - run:
         collectorName: "systemctl-cat-docker"
         command: "systemctl"
