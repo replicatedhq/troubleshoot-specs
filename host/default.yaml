@@ -145,6 +145,10 @@ spec:
         command: "netstat"
         args: ["-r", "-n"]
     - run:
+        collectorName: "resolvectl-status"
+        command: "resolvectl"
+        args: ["status"]
+    - run:
         collectorName: "resolv-conf"
         command: "cat"
         args: ["/etc/resolv.conf"]
