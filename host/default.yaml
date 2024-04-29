@@ -161,6 +161,10 @@ spec:
         command: "cat"
         args: ["/etc/nsswitch.conf"]
     - run:
+        collectorName: "hosts"
+        command: "cat"
+        args: ["/etc/hosts"]
+    - run:
         collectorName: "ip-route-table"
         command: "ip"
         args: ["route"]
