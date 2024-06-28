@@ -3,7 +3,7 @@ kind: SupportBundle
 metadata:
   name: default
 spec:
-  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/default.yaml
+ # uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/default.yaml
   collectors:
     - runPod:
         name: ekco-resources
@@ -452,3 +452,10 @@ spec:
           - pass:
               when: "true"
               message: https://replicated.app host is healthy
+    - storageClass:
+        checkName: Check for default storage class
+        outcomes:
+          - fail:
+              message: No default storage class found
+          - pass:
+              message: Default storage class found
