@@ -3,8 +3,373 @@ kind: SupportBundle
 metadata:
   name: default
 spec:
- # uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/default.yaml
+  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/default.yaml
+  collectors:
+    - runPod:
+        name: ekco-resources
+        namespace: kurl
+        podSpec:
+          containers:
+            - name: inspect-ekco-pods
+              image: adamancini/netshoot
+              command: ["sh", "-c", "--"]
+              args:
+                [
+                  "kubectl get pod -n kurl --selector app=ekc-operator --field-selector status.phase=Running -o json | jq -r .items[]",
+                ]
+          restartPolicy: Never
+          dnsPolicy: ClusterFirst
+          serviceAccount: ekco
+    - copyFromHost:
+        collectorName: "copy apiserver audit logs"
+        image: alpine
+        hostPath: "/var/log/apiserver/"
+        name: "logs"
+        extractArchive: true
+    - copyFromHost:
+        collectorName: "copy kURL logs"
+        image: alpine
+        hostPath: "/var/log/kurl/"
+        name: "logs"
+        extractArchive: true
+    - clusterInfo: {}
+    - clusterResources: {}
+    - ceph: {}
+    - longhorn: {}
+    - exec:
+        args:
+          - "http://localhost:3030/goroutines"
+        collectorName: kotsadm-goroutines
+        command:
+          - curl
+        containerName: kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kotsadm
+        timeout: 10s
+    - exec:
+        args:
+          - "http://localhost:3030/goroutines"
+        collectorName: kotsadm-operator-goroutines
+        command:
+          - curl
+        containerName: kotsadm-operator
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-operator
+        timeout: 10s
+    - logs:
+        collectorName: velero-logs
+        namespace: velero
+        name: kots/velero
+    - logs:
+        collectorName: kurl-control-plane
+        name: kots/kurl/control-plane
+        selector:
+          - tier=control-plane
+    - logs:
+        collectorName: kotsadm-postgres-db
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-postgres
+    - logs:
+        collectorName: kotsadm-api
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-api
+    - logs:
+        collectorName: kotsadm-operator
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-operator
+    - logs:
+        collectorName: kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kotsadm
+    - logs:
+        collectorName: kurl-proxy-kotsadm
+        name: kots/admin_console
+        selector:
+          - app=kurl-proxy-kotsadm
+    - logs:
+        collectorName: kotsadm-dex
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-dex
+    - logs:
+        collectorName: kotsadm-fs-minio
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-fs-minio
+    - logs:
+        collectorName: kotsadm-s3-ops
+        name: kots/admin_console
+        selector:
+          - app=kotsadm-s3-ops
+    - logs:
+        collectorName: registry
+        name: kots/kurl
+        selector:
+          - app=registry
+        namespace: kurl
+    - logs:
+        collectorName: ekc-operator
+        name: kots/kurl
+        selector:
+          - app=ekc-operator
+        namespace: kurl
+    - secret:
+        collectorName: kotsadm-replicated-registry
+        name: kotsadm-replicated-registry # NOTE: this will not live under the kots/ directory like other collectors
+        includeValue: false
+        key: .dockerconfigjson
+    - logs:
+        collectorName: rook-ceph-logs
+        namespace: rook-ceph
+        name: kots/rook
+    - logs:
+        collectorName: coredns-logs
+        namespace: kube-system
+        name: logs/coredns
+        selector:
+          - k8s-app=kube-dns
+    - exec:
+        collectorName: weave-status
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - status
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - exec:
+        collectorName: weave-report
+        command:
+          - /home/weave/weave
+        args:
+          - --local
+          - report
+        containerName: weave
+        exclude: ""
+        name: kots/kurl/weave
+        namespace: kube-system
+        selector:
+          - name=weave-net
+        timeout: 10s
+    - logs:
+        collectorName: rqlite-logs
+        name: kots/rqlite/logs
+        selector:
+          - app=kotsadm-rqlite
+    - logs:
+        collectorName: weave-net
+        selector:
+          - name=weave-net
+        namespace: kube-system
+        name: kots/kurl/weave
+    - logs:
+        collectorName: minio
+        selector:
+          - app=minio
+        namespace: minio
+        name: kots/kurl/minio
+    - logs:
+        collectorName: ha-minio
+        selector:
+          - app=ha-minio
+        namespace: minio
+        name: kots/kurl/ha-minio
+    - exec:
+        args:
+          - "http://goldpinger.kurl.svc.cluster.local:80/check_all"
+        collectorName: goldpinger-statistics
+        command:
+          - curl
+        containerName: kotsadm
+        name: kots/goldpinger
+        selector:
+          - app=kotsadm
+        timeout: 10s
+    - copyFromHost:
+        collectorName: kurl-host-preflights
+        name: kots/kurl/host-preflights
+        hostPath: /var/lib/kurl/host-preflights
+        extractArchive: true
+        image: alpine
+        imagePullPolicy: IfNotPresent
+        timeout: 1m
+    - configMap:
+        collectorName: coredns
+        name: coredns
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kube-proxy
+        name: kube-proxy
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kubeadm-config
+        name: kubeadm-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kubelet-config
+        name: kubelet-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-config
+        name: kurl-config
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: weave-net
+        name: weave-net
+        namespace: kube-system
+        includeAllData: true
+    - configMap:
+        collectorName: ekco-config
+        name: ekco-config
+        namespace: kurl
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-current-config
+        name: kurl-current-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+    - configMap:
+        collectorName: kurl-last-config
+        name: kurl-last-config # NOTE: this will not live under the kots/ directory like other collectors
+        namespace: kurl
+        includeAllData: true
+    - logs:
+        collectorName: projectcontour-logs
+        namespace: projectcontour
+        name: projectcontour/logs
+    - runPod:
+        name: rqlite-status
+        namespace: default
+        podSpec:
+          containers:
+            - name: rqlite-status
+              image: busybox:1
+              command: ["wget"]
+              args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/status?pretty", "-O-"]
+    - runPod:
+        name: rqlite-nodes
+        namespace: default
+        podSpec:
+          containers:
+            - name: rqlite-nodes
+              image: busybox:1
+              command: ["wget"]
+              args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/nodes?pretty&ver=2", "-O-"]
+    - http:
+        collectorName: replicated.app-health-check
+        get:
+          url: https://replicated.app/healthz
   analyzers:
+    - deploymentStatus:
+        checkName: Check EKCO is operational
+        name: ekc-operator
+        namespace: kurl
+        outcomes:
+          - fail:
+              when: absent
+              message: EKCO is not installed - please add the EKCO component to your kURL spec and re-run the installer script
+          - fail:
+              when: "< 1"
+              message: EKCO does not have any Ready pods
+          - pass:
+              message: EKCO is installed and running
+    - textAnalyze:
+        checkName: Check installed EKCO version for critical fixes
+        fileName: cluster-resources/deployments/kurl.json
+        regexGroups: '"image": "replicated/ekco:v(?P<Major>\d+)\.(?P<Minor>\d+)\.(?P<Patch>\d+)"'
+        outcomes:
+          - warn:
+              when: "Minor < 4"
+              message: A critical update for cluster certificate rotation has been released in EKCO 0.4.0.  Please upgrade to the latest available version.
+          - warn:
+              when: "Minor < 19"
+              message: A critical fix for registry certificate rotation has been released in EKCO 0.19.3.  Please upgrade to the latest available version.
+          - pass:
+              when: "Minor > 20"
+              message: EKCO version is recent
+    - containerRuntime:
+        outcomes:
+          - fail:
+              when: "== gvisor"
+              message: The Admin Console does not support using the gvisor runtime
+          - pass:
+              message: A supported container runtime is present on all nodes
+    - cephStatus: {}
+    - longhorn: {}
+    - clusterPodStatuses:
+        outcomes:
+          - fail:
+              when: "!= Healthy"
+              message: "Status: {{ .Status.Reason }}"
+    - statefulsetStatus: {}
+    - deploymentStatus: {}
+    - jobStatus: {}
+    - replicasetStatus: {}
+    - weaveReport:
+        reportFileGlob: kots/kurl/weave/kube-system/*/weave-report-stdout.txt
+    - textAnalyze:
+        checkName: Weave Status
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-status-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: 'Status: ready'
+    - textAnalyze:
+        checkName: Weave Report
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/kurl/weave/kube-system/weave-net-*/weave-report-stdout.txt
+        outcomes:
+          - fail:
+              message: Weave is not ready
+          - pass:
+              message: Weave is ready
+        regex: '"Ready": true'
+    - textAnalyze:
+        checkName: Weave IP Allocation
+        exclude: ""
+        ignoreIfNoFiles: true
+        regex: 'IP allocation was seeded by different peers'
+        fileName: kots/kurl/weave/weave-net-*/weave.log
+        outcomes:
+          - fail:
+              when: "true"
+              message: IP Allocation issues detected. Please run `rm /var/lib/weave/weave-netdata.db && reboot` on each node to resolve this.
+          - pass:
+              when: "false"
+              message: Weave is ready, there are no IP allocation issues.
+    - textAnalyze:
+        checkName: Inter-pod Networking
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: kots/goldpinger/*/kotsadm-*/goldpinger-statistics-stdout.txt
+        outcomes:
+          - fail:
+              when: "OK = false"
+              message: Some nodes have pod communication issues
+          - pass:
+              message: Goldpinger can communicate properly
+        regexGroups: '"OK": ?(?P<OK>\w+)'
     - nodeResources:
         checkName: Node status check
         outcomes:
@@ -24,6 +389,69 @@ spec:
           - fail:
               when: "!= Healthy" # Catch all unhealthy pods. A pod is considered healthy if it has a status of Completed, or Running and all of its containers are ready.
               message: A Contour pod, {{ .Name }}, is unhealthy with a status of {{ .Status.Reason }}. Restarting the pod may fix the issue.
+    - textAnalyze:
+        checkName: longhorn multipath conflict
+        ignoreIfNoFiles: true
+        fileName: longhorn/longhorn-system/logs/longhorn-csi-plugin-*/longhorn-csi-plugin.log
+        outcomes:
+          - fail:
+              when: "true"
+              uri: "https://longhorn.io/kb/troubleshooting-volume-with-multipath/"
+              message: "Longhorn volumes may be in use by system multipath."
+          - pass:
+              when: "false"
+              message: "No block-device conflicts detected"
+        regex: '.*is apparently in use by the system;.*'
+    - textAnalyze:
+        checkName: Minio disk full
+        fileName: cluster-resources/pods/logs/kurl/registry-*/registry.log
+        ignoreIfNoFiles: true
+        regex: '.*XMinioStorageFull: Storage backend has reached its minimum free disk threshold.*'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Minio Disk Full"
+          - pass:
+              when: "false"
+              message: "Minio Disk Ok"
+    - textAnalyze:
+        checkName: Known issue with Rook < 1.4
+        exclude: ""
+        ignoreIfNoFiles: true
+        fileName: /ceph/status.json
+        regex: '\"ceph_release\": \"nautilus\"|\"status\": \"HEALTH_WARN\"'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "If you have been removing and adding nodes then, you might want ensure that you are not facing the scenario described in the community topic: https://community.replicated.com/t/1099"
+          - pass:
+              when: "false"
+              message: "You are not using a Rook versions < 1.4 and/or your Ceph status is OK"
+    - textAnalyze:
+        checkName: Rook rbd filesystem consistency
+        fileName: /kots/rook/rook-ceph-agent-*.log
+        ignoreIfNoFiles: true
+        regex: 'UNEXPECTED INCONSISTENCY; RUN fsck MANUALLY.'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "One or more rook rbd(s) were detected to have filesystem inconsistencies and require manual intervention"
+          - pass:
+              when: "false"
+              message: "Rook filesystem consistency ok"
+    - jsonCompare:
+        checkName: https://replicated.app host health check
+        fileName: replicated.app-health-check.json
+        path: "response.status"
+        value: "200"
+        outcomes:
+          - fail:
+              when: "false"
+              message: https://replicated.app is unhealthy. License and software update checks from replicated will fail. If this is locked down environment, please check your proxy settings.
+              uri: https://kurl.sh/docs/install-with-kurl/proxy-installs
+          - pass:
+              when: "true"
+              message: https://replicated.app host is healthy
     - storageClass:
         checkName: Check for default storage class
         outcomes:
