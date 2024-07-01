@@ -452,3 +452,10 @@ spec:
           - pass:
               when: "true"
               message: https://replicated.app host is healthy
+    - storageClass:
+        checkName: Check for default storage class
+        outcomes:
+          - fail:
+              message: No default storage class found
+          - pass:
+              message: Default storage class found
