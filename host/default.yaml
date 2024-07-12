@@ -248,6 +248,12 @@ spec:
         collectorName: "journalctl-dmesg"
         command: "journalctl"
         args: ["--dmesg", "--no-pager", "-S", "7 days ago"]
+    - copy:
+        collectorName: "syslog"
+        path: /var/log/syslog
+    - copy:
+        collectorName: "syslog" # Copy the previous syslog file as well in case the current one is rotated
+        path: /var/log/syslog.1
     # Docker logs for K8s Control Plane
     - run:
         collectorName: "docker-logs-apiserver"
