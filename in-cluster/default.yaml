@@ -461,7 +461,7 @@ spec:
           - pass:
               message: Default storage class found
     - nodeMetrics:
-        checkName: Check for PVC usage is less than 80% in the entire cluster
+        checkName: Check for PVCs using more than 80% storage in the entire cluster
         outcomes:
           - fail:
               when: "pvcUsedPercentage >= 80"
