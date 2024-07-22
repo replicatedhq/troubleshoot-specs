@@ -275,7 +275,6 @@ spec:
         collectorName: replicated.app-health-check
         get:
           url: https://replicated.app/healthz
-    - nodeMetrics: {}
   analyzers:
     - deploymentStatus:
         checkName: Check EKCO is operational
@@ -460,11 +459,3 @@ spec:
               message: No default storage class found
           - pass:
               message: Default storage class found
-    - nodeMetrics:
-        checkName: Check for PVC usage is less than 80% in the entire cluster
-        outcomes:
-          - fail:
-              when: "pvcUsedPercentage >= 80"
-              message: "There are PVCs using more than 80% of storage: {{ .PVC.ConcatenatedNames }}"
-          - pass:
-              message: "No PVCs are using more than 80% of storage"
