@@ -471,8 +471,8 @@ spec:
     - event:
         checkName: event-oom-check
         namespace: default
-        reason: "OOMKilled"
-        kind: Pod
+        reason: "OOMKilling"
+        kind: Node
         outcomes:
           - fail:
               when: "true"
