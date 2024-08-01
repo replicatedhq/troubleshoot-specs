@@ -468,3 +468,15 @@ spec:
               message: "There are PVCs using more than 80% of storage: {{ .PVC.ConcatenatedNames }}"
           - pass:
               message: "No PVCs are using more than 80% of storage"
+    - event:
+        checkName: event-oom-check
+        namespace: default
+        reason: "OOMKilled"
+        kind: Pod
+        outcomes:
+          - fail:
+              when: "true"
+              message: Event {{ .Reason }} by object {{ .InvolvedObject.Name }} kind {{ .InvolvedObject.Kind }} has message {{ .Message }}
+          - pass:
+              when: "false"
+              message: No OOMKilled event detected
