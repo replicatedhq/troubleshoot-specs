@@ -6,6 +6,7 @@ spec:
   uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/default.yaml
   collectors:
     - runPod:
+        collectorName: "ekco-resources"
         name: ekco-resources
         namespace: kurl
         podSpec:
@@ -254,6 +255,7 @@ spec:
         namespace: projectcontour
         name: projectcontour/logs
     - runPod:
+        collectorName: "rqlite-status"
         name: rqlite-status
         namespace: default
         podSpec:
@@ -263,6 +265,7 @@ spec:
               command: ["wget"]
               args: ["-q", "-T", "5", "http://kotsadm-rqlite:4001/status?pretty", "-O-"]
     - runPod:
+        collectorName: "rqlite-nodes"
         name: rqlite-nodes
         namespace: default
         podSpec:
