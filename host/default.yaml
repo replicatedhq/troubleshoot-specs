@@ -399,6 +399,10 @@ spec:
         get:
           url: https://api.replicated.com/healthz
     - http:
+        collectorName: get-proxy-replicated-com
+        get:
+          url: https://proxy.replicated.com/
+    - http:
         collectorName: curl-get-replicated-com
         get:
           url: https://get.replicated.com/healthz
@@ -666,6 +670,18 @@ spec:
           - pass:
               when: "statusCode == 200"
               message: Connected to https://api.replicated.com/healthz
+          - warn:
+              message: "Unexpected response"
+    - http:
+        checkName: get-proxy-replicated-com
+        collectorName: get-proxy-replicated-com
+        outcomes:
+          - warn:
+              when: "error"
+              message: Error connecting to https://proxy.replicated.com
+          - pass:
+              when: "statusCode == 401"
+              message: Connected to https://proxy.replicated.com
           - warn:
               message: "Unexpected response"
     - http:
