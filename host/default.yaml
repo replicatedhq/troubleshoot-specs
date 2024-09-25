@@ -540,12 +540,6 @@ spec:
           - pass:
               when: "ntp == synchronized+active"
               message: "System clock is synchronized"
-          - warn:
-              when: "timezone != UTC"
-              message: "Non UTC timezone can interfere with system function"
-          - pass:
-              when: "timezone == UTC"
-              message: "Timezone is set to UTC"
     - diskUsage:
         checkName: "root"
         collectorName: "root"
