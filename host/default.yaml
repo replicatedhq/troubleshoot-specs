@@ -165,6 +165,10 @@ spec:
         command: "cat"
         args: ["/etc/hosts"]
     - run:
+        collectorName: "ip-interface-stats"
+        command: "ip"
+        args: ["-s", "link"]
+    - run:
         collectorName: "ip-route-table"
         command: "ip"
         args: ["route"]
