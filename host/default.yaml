@@ -461,14 +461,6 @@ spec:
         collectorName: "localhost-ips"
         command: "sh"
         args: ["-c", "host localhost"]
-    - runPod:
-        name: resolv.conf
-        podSpec:
-          containers:
-            - name: resolv-conf
-              image: alpine
-              command: ["sh", "-c", "cat /etc/resolv.conf"]
-          restartPolicy: Never
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
