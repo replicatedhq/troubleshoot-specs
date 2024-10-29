@@ -67,26 +67,25 @@ function getFlannelInterface () {
     exit 1
   fi
 
-  set -x
   # Figure out the pod's container PID
   container_id="$(crictl ps | grep "$pod_name" | awk 'NR==1{print $1}')"
-  echo -n "Found container ID $container_id"
   pid="$(crictl inspect "$container_id" | jq .info.pid)"
-  echo -n "Found PID $pid"
 
   # link to /var/run/netns so we can use ip netns easily
   mkdir -p /var/run/netns
   ln -sf "/proc/$pid/ns/net" "/var/run/netns/$pod_name"
 
-  # Get the interface index of the container's eth0:
-  local index
-  index=$(ip netns exec "$pod_name" ip link show type veth)
-
-  ils="${index%%:*}"
-
+  # Get the interface index of the container's eth0.
+  # c_index is the index of the container's eth0, which should be in the form of eth0.if${h_index}
+  # h_index is the index of the corresponding host veth interface from `ip link show type veth`
+  local c_index h_index
+  c_index=$(ip netns exec "$pod_name" ip link show type veth | head -n1 | awk '{print $2}' | sed 's/.*@if//')
+  h_index=$(ip link show type veth | grep -E "^${c_index}" | awk '{print $2}' | sed 's/@.*//')
 
   # Clean up the netns symlink, since we don't need it anymore
   rm -f "/var/run/netns/${1}"
+
+  echo "$h_index"
 }
 
 # Figure out if we're using Flannel or Calico VXLAN
