@@ -20,7 +20,7 @@ readonly VXLAN_FLAGS="-lttttnnvv"
 
 namespace=$1
 pod=$2
-timeframe="5m"
+timeframe="1m"
 
 if [[ -z $namespace || -z $pod ]]; then
   echo "Usage: $0 <namespace> <pod-name>"
@@ -90,7 +90,7 @@ function getFlannelInterface () {
 
 # Figure out if we're using Flannel or Calico VXLAN
 if ip link show | grep flannel > /dev/null; then
-  vxlan_interface=cni0
+  vxlan_interface=flannel.1
   vxlan_port=8472
   cni=flannel
 elif ip link show | grep cali > /dev/null; then
@@ -117,7 +117,13 @@ timeout "$timeframe" tcpdump ${VXLAN_FLAGS} -i "$pod_interface" -w "$(hostname)-
 
 # Collect tcpdump from the VXLAN interface
 echo "Collecting tcpdump from VXLAN interface $vxlan_interface on port $vxlan_port"
-timeout "$timeframe" tcpdump ${VXLAN_FLAGS} -i "$vxlan_interface" -T vxlan port "$vxlan_port" -w "$(hostname)-$vxlan_interface".pcap &
+timeout "$timeframe" tcpdump ${VXLAN_FLAGS} -i "$vxlan_interface" -w "$(hostname)-$vxlan_interface".pcap &
+
+if [[ $cni == "flannel" ]]; then
+  # Collect tcpdump also from the cni0 bridge
+  echo "Collecting tcpdump from cni0 bridge"
+  timeout "$timeframe" tcpdump ${VXLAN_FLAGS} -i "cni0" -w "$(hostname)-cni0".pcap &
+fi
 
 # Figure out the host's primary interface
 host_interface=$(ip route | grep '^default' | awk '{print $5}')
