@@ -20,10 +20,15 @@ readonly VXLAN_FLAGS="-lttttnnvv"
 
 namespace=$1
 pod=$2
-timeframe="1m"
+timeframe="5m"
 
 if [[ -z $namespace || -z $pod ]]; then
-  echo "Usage: $0 <namespace> <pod-name>"
+  echo "Usage: ./tcpdump.sh <namespace> <pod-name> [time frame]"
+  echo "  namespace: string, required"
+  echo "  pod-name: string, required"
+  echo "  time frame: integer with optional suffix 's', 'm', 'h', or 'd'; defaults to '5m'"
+  echo "  Example Usage: ./tcpdump.sh default coredns-coredns-74ff55c5d 300s"
+  echo "  "
   exit 1
 fi
 
@@ -40,7 +45,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # check for required binaries
-for binary in kubectl jq tcpdump; do
+for binary in kubectl jq tcpdump ip timeout grep awk; do
   if ! command -v "$binary" &> /dev/null; then
     echo "Could not find $binary"
     exit 1
