@@ -49,10 +49,10 @@ spec:
       #   runAsUser: 1000
       #   fsGroup: 2000
       containers:
-        - name: netshoot
-          image: "docker.io/nicolaka/netshoot"
-          imagePullPolicy: Always
-          securityContext:
-            privileged: true
-          tty: true
-          stdin: true
+      - name: netshoot
+        image: "docker.io/nicolaka/netshoot"
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        tty: true
+        stdin: true
