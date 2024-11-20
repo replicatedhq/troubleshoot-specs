@@ -87,6 +87,14 @@ spec:
         collectorName: "iostat"
         command: "iostat"
         args: ["-x"]
+    - run:
+        collectorName: "pidstat-disk-io"
+        command: "pidstat"
+        args: ["d"]
+    - run:
+        collectorName: "iotop"
+        command: "iotop"
+        args: ["-n", "1", "-b"]
     # SELinux status
     - run:
         collectorName: "sestatus"
