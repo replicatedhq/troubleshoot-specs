@@ -185,6 +185,18 @@ spec:
           - /export/kotsadm
         selector:
           - app=kotsadm-minio
+    - exec:
+        collectorName: minio-fs-ls
+        command:
+          - /usr/bin/mc
+        args:
+          - ls
+          - --summarize
+          - --recursive
+          - --json
+          - /data
+        selector:
+          - app=kotsadm-fs-minio
     - logs:
         collectorName: weave-net
         selector:
