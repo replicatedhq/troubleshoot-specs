@@ -169,6 +169,23 @@ spec:
         selector:
           - app=kotsadm-rqlite
     - logs:
+        collectorName: minio-logs
+        name: kots/minio/logs
+        selector:
+          - app=kotsadm-minio
+    - exec:
+        collectorName: minio-ls
+        command:
+          - /usr/bin/mc
+        args:
+          - ls
+          - --summarize
+          - --recursive
+          - --json
+          - /export/kotsadm
+        selector:
+          - app=kotsadm-minio
+    - logs:
         collectorName: weave-net
         selector:
           - name=weave-net
