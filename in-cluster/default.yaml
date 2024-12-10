@@ -186,6 +186,15 @@ spec:
         selector:
           - app=kotsadm-minio
     - exec:
+        collectorName: minio-admin-info
+        command:
+          - /bin/sh
+        args:
+          - -c
+          - "mc alias set myminio http://localhost:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY > /dev/null 2>&1 && mc admin info myminio --json"
+        selector:
+          - app=kotsadm-minio
+    - exec:
         collectorName: minio-fs-ls
         command:
           - /usr/bin/mc
