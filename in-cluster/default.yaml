@@ -508,4 +508,4 @@ spec:
           - pass:
               when: "false"
               message: "CoreDNS found valid nameserver configuration"
-              
+
