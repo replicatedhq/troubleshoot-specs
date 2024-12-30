@@ -500,7 +500,7 @@ spec:
         checkName: "CoreDNS nameserver configuration"
         regex: "no nameservers found"
         ignoreIfNoFiles: true
-        fileName: cluster-resources/pods/logs/kube-system/coredns-*/coredns.log 
+        fileName: cluster-resources/pods/logs/kube-system/coredns-*/coredns.log
         outcomes:
           - fail:
               when: "true"
