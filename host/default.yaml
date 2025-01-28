@@ -377,7 +377,7 @@ spec:
     # to succeed it requires sudo privileges for the user
     - copy:
         collectorName: "apiserver-audit-logs"
-        path: /var/log/apiserver/k8s-audit*
+        path: /var/log/apiserver/k8s-audit.log
     # Collect kURL installer logs
     - copy:
         collectorName: "kurl-logs"
