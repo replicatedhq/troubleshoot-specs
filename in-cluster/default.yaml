@@ -186,6 +186,12 @@ spec:
           - app=ha-minio
         namespace: minio
         name: kots/kurl/ha-minio
+    - logs:
+        collectorName: openebs-logs
+        name: logs/openebs-logs
+        namespace: openebs
+        limits:
+          maxAge: 720h
     - exec:
         args:
           - "http://goldpinger.kurl.svc.cluster.local:80/check_all"
