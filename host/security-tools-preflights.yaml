@@ -24,7 +24,7 @@ spec:
         outcomes:
           - fail:
               when: "true"
-              message: "Antivirus or network security tools detected. These tools can interfere with kubernetes operation. Check 'host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt' in the preflight archive for the list of detected tools."
+              message: "Antivirus or network security tools detected. These tools can interfere with kubernetes operation. Check 'host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt' in the preflight archive for the list of detected tools. Ensure the tools are either disabled or configured to not interfere with kubernetes operation."
           - pass:
               when: "false"
               message: "No Antivirus or Network Security tools detected."
@@ -34,6 +34,6 @@ spec:
         outcomes:
           - fail:
               when: '{{ .IsInstalled }}'
-              message: Package {{ .Name }} is installed. This tool can interfere with kubernetes operation.
+              message: Package {{ .Name }} is installed. This tool can interfere with kubernetes operation. Ensure the tool is either disabled or configured to not interfere with kubernetes operation.
           - pass:
               message: Package {{ .Name }} is not installed
