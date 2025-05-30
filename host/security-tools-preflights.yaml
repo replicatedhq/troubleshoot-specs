@@ -1,0 +1,38 @@
+---
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: security-tools-preflights
+spec:
+  collectors:
+    - systemPackages:
+        collectorName: system-packages
+        rhel:
+          - sdcss-kmod
+          - sdcss
+          - sdcss-scripts
+    - run:
+        collectorName: "ps-detect-antivirus-and-security-tools"
+        command: "sh"
+        args: [-c, "ps -ef | grep -E 'clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio|xagt|wdavdaemon|mdatp' | grep -v grep"]
+  analyzers:
+    - textAnalyze:
+        checkName: "Detected Threat Management and Network Security Tools"
+        fileName: host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt
+        regex: '\b(clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio|xagt|wdavdaemon)\b'
+        ignoreIfNoFiles: true
+        outcomes:
+          - warn:
+              when: "true"
+              message: "Antivirus or Network Security tools detected. These tools can interfere with kubernetes operation."
+          - pass:
+              when: "false"
+              message: "No Antivirus or Network Security tools detected."
+    - systemPackages:
+        collectorName: system-packages
+        outcomes:
+          - warn:
+              when: '{{ .IsInstalled }}'
+              message: Package {{ .Name }} is installed. This tool can interfere with kubernetes operation.
+          - pass:
+              message: Package {{ .Name }} is not installed
