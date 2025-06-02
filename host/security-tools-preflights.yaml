@@ -7,6 +7,10 @@ spec:
   collectors:
     - systemPackages:
         collectorName: security-tools-packages
+        ubuntu:
+          - sdcss-kmod
+          - sdcss
+          - sdcss-scripts
         rhel:
           - sdcss-kmod
           - sdcss
