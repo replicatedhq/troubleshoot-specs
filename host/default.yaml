@@ -24,6 +24,20 @@ spec:
         collectorName: etcd-keypair
         certificatePath: /etc/kubernetes/pki/etcd/server.crt
         keyPath: /etc/kubernetes/pki/etcd/server.key
+    # Extract certificate subject information for RBAC cross-reference
+    - run:
+        collectorName: "api-server-cert-subject"
+        command: "openssl"
+        args: ["x509", "-in", "/etc/kubernetes/pki/apiserver.crt", "-noout", "-text"]
+    # ECKO Certificate RBAC Issue Detection
+    - run:
+        collectorName: "apiserver-kubelet-client-cert-subject"
+        command: "openssl"
+        args: ["x509", "-in", "/etc/kubernetes/pki/apiserver-kubelet-client.crt", "-noout", "-subject"]
+    - run:
+        collectorName: "kubeadm-cluster-admins-clusterrolebinding"
+        command: "sh"
+        args: ["-c", "kubectl get clusterrolebinding kubeadm:cluster-admins -o yaml 2>/dev/null || echo 'MISSING'"]
     # Disk usage for commonly used directories in kURL installs
     - diskUsage:
         collectorName: root
@@ -846,6 +860,41 @@ spec:
           - pass:
               when: "false"
               message: "No Antivirus or Network Security tools detected."
+    - textAnalyze:
+        checkName: "API Server Certificate Subject Analysis"
+        fileName: host-collectors/run-host/api-server-cert-subject.txt
+        regex: 'Subject:.*CN\s*=\s*([^,\s]+)'
+        ignoreIfNoFiles: true
+        outcomes:
+          - pass:
+              when: "true"
+              message: "API server certificate subject found. Verify that certificate groups have corresponding RBAC ClusterRoleBindings in the cluster."
+          - warn:
+              when: "false"
+              message: "Unable to extract API server certificate subject information. Certificate file may be missing or unreadable."
+    # ECKO Certificate RBAC Issue Detection
+    - textAnalyze:
+        checkName: "ECKO Certificate RBAC Issue Detection"
+        fileName: host-collectors/run-host/apiserver-kubelet-client-cert-subject.txt
+        regex: 'subject=.*O\s*=\s*kubeadm:cluster-admins'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "CRITICAL: apiserver-kubelet-client certificate uses 'kubeadm:cluster-admins' subject (Kubernetes 1.29+ format). This requires a corresponding ClusterRoleBinding to function properly. Check the ClusterRoleBinding analysis below."
+          - pass:
+              when: "false"
+              message: "Certificate uses traditional subject format (likely 'system:masters'). No RBAC binding required."
+    - textAnalyze:
+        checkName: "kubeadm:cluster-admins ClusterRoleBinding Validation"
+        fileName: host-collectors/run-host/kubeadm-cluster-admins-clusterrolebinding.txt
+        regex: 'MISSING'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "CRITICAL: kubeadm:cluster-admins ClusterRoleBinding is MISSING. If your apiserver-kubelet-client certificate uses 'kubeadm:cluster-admins' group, API server operations will fail with 'Forbidden' errors. Run: kubectl create clusterrolebinding kubeadm:cluster-admins --clusterrole=cluster-admin --group=kubeadm:cluster-admins"
+          - pass:
+              when: "false"
+              message: "kubeadm:cluster-admins ClusterRoleBinding exists or is not required."
     - systemPackages:
         collectorName: security-tools-packages
         outcomes:

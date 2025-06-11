@@ -35,6 +35,10 @@ spec:
         extractArchive: true
     - clusterInfo: {}
     - clusterResources: {}
+    # ECKO Certificate RBAC Issue Detection
+    - clusterRoleBinding:
+        name: kubeadm:cluster-admins
+        collectorName: kubeadm-cluster-admins-binding
     - ceph: {}
     - longhorn: {}
     - exec:
@@ -299,6 +303,17 @@ spec:
               message: EKCO does not have any Ready pods
           - pass:
               message: EKCO is installed and running
+    # ECKO Certificate RBAC Issue Detection
+    - clusterRoleBinding:
+        checkName: "ECKO Certificate RBAC Issue Detection"
+        collectorName: kubeadm-cluster-admins-binding
+        outcomes:
+          - fail:
+              when: "not-found"
+              message: "CRITICAL: kubeadm:cluster-admins ClusterRoleBinding is MISSING. This is the ECKO certificate RBAC issue where ECKO updated certificates to use Kubernetes 1.29+ format but didn't create the required RBAC binding. This causes 'Forbidden' errors for kubectl logs/exec. Fix: kubectl create clusterrolebinding kubeadm:cluster-admins --clusterrole=cluster-admin --group=kubeadm:cluster-admins"
+          - pass:
+              when: "present"
+              message: "kubeadm:cluster-admins ClusterRoleBinding exists - RBAC is properly configured."
     - textAnalyze:
         checkName: Check installed EKCO version for critical fixes
         fileName: cluster-resources/deployments/kurl.json
