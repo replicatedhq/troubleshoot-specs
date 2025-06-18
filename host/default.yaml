@@ -478,6 +478,14 @@ spec:
         collectorName: "localhost-ips"
         command: "sh"
         args: ["-c", "host localhost"]
+    - run:
+        collectorName: "ip-address-stats"
+        command: "ip"
+        args: ["-s", "-s", "address"]
+    - run:
+        collectorName: "lspci"
+        command: "lspci"
+        args: ["-vvv", "-D"]
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
