@@ -478,6 +478,49 @@ spec:
         collectorName: "localhost-ips"
         command: "sh"
         args: ["-c", "host localhost"]
+    - run:
+        collectorName: "ip-address-stats"
+        command: "ip"
+        args: ["-s", "-s", "address"]
+    - run:
+        collectorName: "ethool-info"
+        command: "sh"
+        args:
+          - -c
+          - >
+            interfaces=$(ls /sys/class/net);
+            for iface in $interfaces; do
+              echo "==============================================";
+              echo "Interface: $iface";
+              echo "==============================================";
+
+              echo
+              echo "--- Basic Info ---"
+              ethtool "$iface"
+
+              echo
+              echo "--- Features (Offloads) ---"
+              ethtool -k "$iface"
+
+              echo
+              echo "--- Pause Parameters ---"
+              ethtool -a "$iface"
+
+              echo
+              echo "--- Ring Parameters ---"
+              ethtool -g "$iface"
+
+              echo
+              echo "--- Coalesce Settings ---"
+              ethtool -c "$iface"
+
+              echo
+              echo "--- Driver Info ---"
+              ethtool -i "$iface"
+
+              echo
+              echo
+            done
   hostAnalyzers:
     - certificate:
         collectorName: k8s-api-keypair
