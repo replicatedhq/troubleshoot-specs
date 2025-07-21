@@ -16,7 +16,7 @@ spec:
         regex: '\b(puppet|chef-client|cf-agent)\b'
         ignoreIfNoFiles: true
         outcomes:
-          - fail:
+          - warn:
               when: "true"
               message: "Infrastructure management tools detected. These tools can modify system configurations needed for kubernetes operation. Check 'host-collectors/run-host/ps-detect-infra-management-tools.txt' in the preflight archive for the list of detected tools. Ensure the tools are either disabled or configured to not interfere with configurations needed for kubernetes operation."
           - pass:
