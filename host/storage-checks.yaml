@@ -1,0 +1,23 @@
+# This preflight checks the available storage space on the data directory.
+# Usage:
+#   DATA_DIR=/opt/data STORAGE=50Gi envsubst < storage-checks.yaml | sudo preflight - --interactive=false
+
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: storage-checks
+spec:
+  collectors:
+    - diskUsage:
+        collectorName: data-dir-disk-usage
+        path: $DATA_DIR
+  analyzers:
+    - diskUsage:
+        checkName: Data Directory Disk Space
+        collectorName: data-dir-disk-usage
+        outcomes:
+          - fail:
+              when: 'available < $STORAGE'
+              message: The filesystem at $DATA_DIR has less than $STORAGE of available storage space needed to for this installation.
+          - pass:
+              message: The filesystem at $DATA_DIR has sufficient available space
