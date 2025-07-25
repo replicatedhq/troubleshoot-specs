@@ -1,0 +1,22 @@
+# This preflight checks the number of nodes in the cluster with 110 pods capacity.
+# Usage:
+#   POD_CAPACITY=110 MIN_NODES=3 envsubst < check-pod-limits.yaml | preflight -
+
+apiVersion: troubleshoot.sh/v1beta2
+kind: Preflight
+metadata:
+  name: check-pod-limits
+spec:
+  collectors:
+    - clusterResources: {}
+  analyzers:
+    - nodeResources:
+        checkName: Must have at least $MIN_NODES nodes in the cluster with $POD_CAPACITY pods capacity
+        filters:
+          podCapacity: "$POD_CAPACITY"
+        outcomes:
+          - fail:
+              when: "count() < $MIN_NODES"
+              message: This application requires at least $MIN_NODES nodes with $POD_CAPACITY pods capacity
+          - pass:
+              message: This cluster has enough nodes.

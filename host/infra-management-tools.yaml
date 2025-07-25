@@ -1,0 +1,24 @@
+---
+apiVersion: troubleshoot.sh/v1beta2
+kind: HostPreflight
+metadata:
+  name: infra-management-tools
+spec:
+  collectors:
+    - run:
+        collectorName: "ps-detect-infra-management-tools"
+        command: "sh"
+        args: [-c, "ps -ef | grep -E 'puppet|chef-client|cf-agent' | grep -v grep"]
+  analyzers:
+    - textAnalyze:
+        checkName: "Detected Infrastructure Management Tools"
+        fileName: host-collectors/run-host/ps-detect-infra-management-tools.txt
+        regex: '\b(puppet|chef-client|cf-agent)\b'
+        ignoreIfNoFiles: true
+        outcomes:
+          - warn:
+              when: "true"
+              message: "Infrastructure management tools detected. These tools can modify system configurations needed for kubernetes operation. Check 'host-collectors/run-host/ps-detect-infra-management-tools.txt' in the preflight archive for the list of detected tools. Ensure the tools are either disabled or configured to not interfere with configurations needed for kubernetes operation."
+          - pass:
+              when: "false"
+              message: "No Infrastructure Management tools detected."
