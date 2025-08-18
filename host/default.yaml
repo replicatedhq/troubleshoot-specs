@@ -264,6 +264,9 @@ spec:
         collectorName: "syslog"
         path: /var/log/syslog
     - copy:
+        collectorName: "audit-logs"
+        path: /var/log/audit/audit.log
+    - copy:
         collectorName: "syslog" # Copy the previous syslog file as well in case the current one is rotated
         path: /var/log/syslog.1
     # Docker logs for K8s Control Plane
