@@ -460,7 +460,7 @@ spec:
     - run:
         collectorName: "ps-detect-antivirus-and-security-tools"
         command: "sh"
-        args: [-c, "ps -ef | grep -E 'clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio|xagt|wdavdaemon|mdatp|mfeespd|mfetpd|masvc|macmnsvc|cbdaemon|BESClient|nessus' | grep -v grep"]
+        args: [-c, "ps -ef | grep -iE 'avast|avg|bdagent|BESClient|bitdefender|carbonblack|cbdaemon|clamav|crowdstrike|cylance|ds_agent|eset|esets_daemon|falcon|fsav|illumio|kaspersky|kav|macmnsvc|malwarebytes|masvc|mcafee|mdatp|mfeespd|mfend|mfetpd|nessus|qualys|rapid7|s1agent|sentinel|sophos|symantec|tanium|tenable|trend|wdavdaemon|xagt' | grep -v grep"]
     - systemPackages:
         collectorName: security-tools-packages
         rhel:
