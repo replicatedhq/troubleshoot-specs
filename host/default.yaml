@@ -72,6 +72,11 @@ spec:
         command: "top"
         args: ['-b', '-n', '1', '-c', '-w', '512']
     - run:
+        # -c and -w are not supported on all systems such as busybox
+        collectorName: top-few-args
+        command: top
+        args: ['-b', '-n', '1']
+    - run:
         collectorName: "uptime"
         command: "uptime"
         args: []
@@ -460,7 +465,7 @@ spec:
     - run:
         collectorName: "ps-detect-antivirus-and-security-tools"
         command: "sh"
-        args: [-c, "ps -ef | grep -iE 'avast|avg|bdagent|BESClient|bitdefender|carbonblack|cbdaemon|clamav|crowdstrike|cylance|ds_agent|eset|esets_daemon|falcon|fsav|illumio|kaspersky|kav|macmnsvc|malwarebytes|masvc|mcafee|mdatp|mfeespd|mfend|mfetpd|nessus|qualys|rapid7|s1agent|sentinel|sophos|symantec|tanium|tenable|trend|wdavdaemon|xagt' | grep -v grep"]
+        args: [-c, "ps -ef | grep -iE 'avast|avg|bdagent|BESClient|bitdefender|carbonblack|cbdaemon|clamav|crowdstrike|cylance|ds_agent|esets_daemon|falcon|fsav|illumio|kaspersky|kav|macmnsvc|malwarebytes|masvc|mcafee|mdatp|mfeespd|mfend|mfetpd|nessus|qualys|rapid7|s1agent|sentinel|sophos|symantec|tanium|tenable|trend|wdavdaemon|xagt' | grep -v grep"]
     - systemPackages:
         collectorName: security-tools-packages
         rhel:
@@ -886,7 +891,7 @@ spec:
     - textAnalyze:
         checkName: "Detect Threat Management and Network Security Tools"
         fileName: host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt
-        regex: '\b(clamav|sophos|esets_daemon|fsav|symantec|mfend|ds_agent|kav|bdagent|s1agent|falcon|illumio|xagt|wdavdaemon|mdatp)\b'
+        regex: '\b(avast|avg|bdagent|BESClient|bitdefender|carbonblack|cbdaemon|clamav|crowdstrike|cylance|ds_agent|esets_daemon|falcon|fsav|illumio|kaspersky|kav|macmnsvc|malwarebytes|masvc|mcafee|mdatp|mfeespd|mfend|mfetpd|nessus|qualys|rapid7|s1agent|sentinel|sophos|symantec|tanium|tenable|trend|wdavdaemon|xagt)\b'
         ignoreIfNoFiles: true
         outcomes:
           - fail:
