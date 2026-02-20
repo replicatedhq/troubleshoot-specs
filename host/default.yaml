@@ -891,15 +891,14 @@ spec:
     - textAnalyze:
         checkName: "Detect Threat Management and Network Security Tools"
         fileName: host-collectors/run-host/ps-detect-antivirus-and-security-tools.txt
-        regex: '\b(avast|avg|bdagent|BESClient|bitdefender|carbonblack|cbdaemon|clamav|crowdstrike|cylance|ds_agent|esets_daemon|falcon|fsav|illumio|kaspersky|kav|macmnsvc|malwarebytes|masvc|mcafee|mdatp|mfeespd|mfend|mfetpd|nessus|qualys|rapid7|s1agent|sentinel|sophos|symantec|tanium|tenable|trend|wdavdaemon|xagt)\b'
+        regexGroups: '(?ms)(?P<Detected>.*)'
         ignoreIfNoFiles: true
         outcomes:
-          - fail:
-              when: "true"
-              message: "Antivirus or Network Security tools detected. These tools can interfere with kubernetes operation."
           - pass:
-              when: "false"
-              message: "No Antivirus or Network Security tools detected."
+              when: "Detected == ''"
+              message: "No antivirus or network security tools detected."
+          - fail:
+              message: "Antivirus or Network Security tools detected. These tools can interfere with kubernetes operation."
     - systemPackages:
         collectorName: security-tools-packages
         outcomes:
