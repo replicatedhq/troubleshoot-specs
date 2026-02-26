@@ -186,6 +186,17 @@ spec:
           - app=ha-minio
         namespace: minio
         name: kots/kurl/ha-minio
+    # MinIO data volume inspection (format.json state, mount info)
+    - exec:
+        collectorName: minio-data-volume-inspect
+        command: ["sh"]
+        args: ["-c", "echo '=== MinIO Metadata ===' && ls -la /data/.minio.sys/ 2>/dev/null && echo '=== format.json ===' && cat /data/.minio.sys/format.json 2>/dev/null || echo 'Unable to read MinIO metadata'"]
+        containerName: minio
+        namespace: minio
+        selector:
+          - app=minio
+        timeout: 10s
+        name: kots/kurl/minio
     - logs:
         collectorName: openebs-logs
         name: logs/openebs-logs
@@ -437,6 +448,78 @@ spec:
           - pass:
               when: "false"
               message: "Minio Disk Ok"
+    - textAnalyze:
+        checkName: "MinIO Data Volume Read Failure"
+        fileName: cluster-resources/pods/logs/minio/*/*.log
+        ignoreIfNoFiles: true
+        regex: 'Unable to read.*format\.json|Failed to read.*\.minio\.sys'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "MinIO failed to read its metadata (format.json). This typically indicates the underlying storage volume was remounted read-only due to filesystem corruption. Collect a host support bundle and check dmesg for ext4 errors and mount state of /var/openebs/local."
+          - pass:
+              when: "false"
+              message: "No MinIO metadata read failures detected"
+    - textAnalyze:
+        checkName: "MinIO Read-Only Filesystem"
+        fileName: cluster-resources/pods/logs/minio/*/*.log
+        ignoreIfNoFiles: true
+        regex: '(?i)read-only file system'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "MinIO encountered a read-only filesystem error. The underlying OpenEBS local PV storage may have been remounted read-only due to ext4 corruption. Check the host dmesg and mount output for the volume backing /var/openebs/local."
+          - pass:
+              when: "false"
+              message: "No read-only filesystem errors in MinIO logs"
+    - textAnalyze:
+        checkName: "EKCO Certificate Rotation Forbidden"
+        fileName: cluster-resources/pods/logs/kurl/ekc-operator-*/*.log
+        ignoreIfNoFiles: true
+        regex: 'Failed to get pod rotate-certs.*Forbidden'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "EKCO certificate rotation is failing with Forbidden errors. The kube-apiserver-kubelet-client certificate may have RBAC issues or the kubelet is rejecting API server requests. This can cause kubectl exec/logs failures during kURL upgrades. Check the apiserver-kubelet-client cert validity and kubelet logs."
+          - pass:
+              when: "false"
+              message: "No EKCO certificate rotation permission errors detected"
+    - textAnalyze:
+        checkName: "EKCO Certificate Rotation Failures"
+        fileName: cluster-resources/pods/logs/kurl/ekc-operator-*/*.log
+        ignoreIfNoFiles: true
+        regex: 'Failed to rotate|failed to renew|certificate has expired|x509: certificate has expired'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "EKCO failed to rotate or renew certificates. This can lead to expired certs that prevent cluster communication. Check EKCO logs for details and run 'kubeadm certs check-expiration' on the host."
+          - pass:
+              when: "false"
+              message: "No EKCO certificate rotation failures detected"
+    - textAnalyze:
+        checkName: "Kubelet API Admin RBAC Binding"
+        fileName: cluster-resources/auth/cluster-role-bindings.json
+        ignoreIfNoFiles: true
+        regex: 'kubeadm:cluster-admins'
+        outcomes:
+          - fail:
+              when: "false"
+              message: "The kubeadm:cluster-admins ClusterRoleBinding is missing. This binding grants the API server's kubelet-client cert access to kubelet APIs (kubectl exec, kubectl logs). Without it, kURL upgrades fail because the installer cannot exec into pods. Recreate with: kubectl create clusterrolebinding kubeadm:cluster-admins --clusterrole=cluster-admin --group=kubeadm:cluster-admins"
+          - pass:
+              when: "true"
+              message: "kubeadm:cluster-admins ClusterRoleBinding exists"
+    - textAnalyze:
+        checkName: "API Server Kubelet Client Authorization"
+        fileName: cluster-resources/pods/logs/kube-system/kube-apiserver-*/*.log
+        ignoreIfNoFiles: true
+        regex: 'Forbidden.*nodes.*proxy|cannot get resource.*nodes.*subresource.*proxy'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "API server is being denied proxy access to kubelets. This prevents kubectl exec and kubectl logs from working. Verify the kubeadm:cluster-admins ClusterRoleBinding exists and that the apiserver-kubelet-client cert has the correct O=kubeadm:cluster-admins subject. Run: openssl x509 -in /etc/kubernetes/pki/apiserver-kubelet-client.crt -noout -subject"
+          - pass:
+              when: "false"
+              message: "No API server kubelet proxy authorization failures detected"
     - textAnalyze:
         checkName: Known issue with Rook < 1.4
         exclude: ""
