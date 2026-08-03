@@ -89,6 +89,10 @@ spec:
         command: "df"
         args: ["-h"]
     - run:
+        collectorName: "df-inodes"
+        command: "df"
+        args: ["-ih"]
+    - run:
         collectorName: "iostat"
         command: "iostat"
         args: ["-x"]
@@ -368,6 +372,15 @@ spec:
         collectorName: "crictl-logs-ekco-previous"
         command: "sh"
         args: ["-c", "crictl logs -p $(crictl ps -a --name ekc-operator -l --quiet) 2>&1"]
+    # Logs for MinIO (Used by kURL/KOTS for object storage)
+    - run:
+        collectorName: "crictl-logs-minio"
+        command: "sh"
+        args: ["-c", "crictl logs $(crictl ps -a --name minio -l --quiet) 2>&1"]
+    - run:
+        collectorName: "crictl-logs-minio-previous"
+        command: "sh"
+        args: ["-c", "crictl logs -p $(crictl ps -a --name minio -l --quiet) 2>&1"]
     # sysctl parameters
     - run:
         collectorName: "sysctl-all"
@@ -405,6 +418,22 @@ spec:
         collectorName: "kubeadm-flags.env"
         command: "cat"
         args: ["/var/lib/kubelet/kubeadm-flags.env"]
+    # Kubelet configuration and PKI state (for cert rotation diagnostics)
+    - run:
+        collectorName: "kubelet-config"
+        command: "cat"
+        args: ["/var/lib/kubelet/config.yaml"]
+    - run:
+        collectorName: "kubelet-pki-listing"
+        command: "sh"
+        args:
+          - -c
+          - |
+            echo "=== Kubelet PKI Directory ==="
+            ls -la /var/lib/kubelet/pki/ 2>/dev/null || echo "/var/lib/kubelet/pki/ not found"
+            echo ""
+            echo "=== Symlink Targets ==="
+            find /var/lib/kubelet/pki/ -type l -exec sh -c 'echo "{} -> $(readlink -f {})"' \; 2>/dev/null
     - run:
         collectorName: "kurl-host-preflights"
         command: "tail"
@@ -417,6 +446,89 @@ spec:
         collectorName: "tmp-kubeadm.conf"
         command: "cat"
         args: ["/var/lib/kubelet/tmp-kubeadm.conf"]
+    # Kubernetes certificate expiration checks
+    - run:
+        collectorName: "kubeadm-certs-expiration"
+        command: "sh"
+        args: ["-c", "kubeadm certs check-expiration 2>/dev/null || kubeadm alpha certs check-expiration 2>/dev/null || echo 'kubeadm certs check-expiration not available'"]
+    - run:
+        collectorName: "k8s-cert-expiration-check"
+        command: "sh"
+        args:
+          - -c
+          - |
+            WARN_SECONDS=2592000
+            check_cert_file() {
+              cert="$1"; label="$2"
+              if [ -f "$cert" ]; then
+                subject=$(openssl x509 -in "$cert" -noout -subject 2>/dev/null | sed 's/subject=//')
+                issuer=$(openssl x509 -in "$cert" -noout -issuer 2>/dev/null | sed 's/issuer=//')
+                expiry=$(openssl x509 -in "$cert" -noout -enddate 2>/dev/null | cut -d= -f2)
+                if ! openssl x509 -in "$cert" -checkend 0 >/dev/null 2>&1; then
+                  echo "EXPIRED: $label ($cert)"
+                  echo "  Subject: $subject"
+                  echo "  Issuer: $issuer"
+                  echo "  Expired: $expiry"
+                elif ! openssl x509 -in "$cert" -checkend $WARN_SECONDS >/dev/null 2>&1; then
+                  echo "EXPIRING_SOON: $label ($cert)"
+                  echo "  Subject: $subject"
+                  echo "  Issuer: $issuer"
+                  echo "  Expires: $expiry"
+                else
+                  echo "OK: $label ($cert)"
+                  echo "  Subject: $subject"
+                  echo "  Expires: $expiry"
+                fi
+                echo ""
+              fi
+            }
+            check_embedded_cert() {
+              kubeconfig="$1"; label="$2"
+              if [ -f "$kubeconfig" ]; then
+                cert_data=$(grep 'client-certificate-data' "$kubeconfig" | head -1 | awk '{print $2}')
+                if [ -n "$cert_data" ]; then
+                  subject=$(echo "$cert_data" | base64 -d 2>/dev/null | openssl x509 -noout -subject 2>/dev/null | sed 's/subject=//')
+                  expiry=$(echo "$cert_data" | base64 -d 2>/dev/null | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+                  if ! echo "$cert_data" | base64 -d 2>/dev/null | openssl x509 -checkend 0 >/dev/null 2>&1; then
+                    echo "EXPIRED: $label ($kubeconfig)"
+                    echo "  Subject: $subject"
+                    echo "  Expired: $expiry"
+                  elif ! echo "$cert_data" | base64 -d 2>/dev/null | openssl x509 -checkend $WARN_SECONDS >/dev/null 2>&1; then
+                    echo "EXPIRING_SOON: $label ($kubeconfig)"
+                    echo "  Subject: $subject"
+                    echo "  Expires: $expiry"
+                  else
+                    echo "OK: $label ($kubeconfig)"
+                    echo "  Subject: $subject"
+                    echo "  Expires: $expiry"
+                  fi
+                  echo ""
+                fi
+              fi
+            }
+            echo "=== Kubernetes PKI Certificates ==="
+            echo ""
+            check_cert_file /etc/kubernetes/pki/ca.crt "Kubernetes CA"
+            check_cert_file /etc/kubernetes/pki/apiserver.crt "API Server"
+            check_cert_file /etc/kubernetes/pki/apiserver-kubelet-client.crt "API Server Kubelet Client"
+            check_cert_file /etc/kubernetes/pki/front-proxy-ca.crt "Front Proxy CA"
+            check_cert_file /etc/kubernetes/pki/front-proxy-client.crt "Front Proxy Client"
+            echo "=== etcd PKI Certificates ==="
+            echo ""
+            check_cert_file /etc/kubernetes/pki/etcd/ca.crt "etcd CA"
+            check_cert_file /etc/kubernetes/pki/etcd/server.crt "etcd Server"
+            check_cert_file /etc/kubernetes/pki/etcd/peer.crt "etcd Peer"
+            check_cert_file /etc/kubernetes/pki/etcd/healthcheck-client.crt "etcd Healthcheck Client"
+            echo "=== Kubelet Certificates ==="
+            echo ""
+            check_cert_file /var/lib/kubelet/pki/kubelet-client-current.pem "Kubelet Client (auto-rotated)"
+            check_cert_file /var/lib/kubelet/pki/kubelet.crt "Kubelet Server"
+            echo "=== Kubeconfig Embedded Client Certificates ==="
+            echo ""
+            check_embedded_cert /etc/kubernetes/admin.conf "admin.conf Client Cert"
+            check_embedded_cert /etc/kubernetes/controller-manager.conf "controller-manager.conf Client Cert"
+            check_embedded_cert /etc/kubernetes/scheduler.conf "scheduler.conf Client Cert"
+            check_embedded_cert /etc/kubernetes/kubelet.conf "kubelet.conf Client Cert"
     - http:
         collectorName: curl-api-replicated-com
         get:
@@ -450,10 +562,29 @@ spec:
         collectorName: "du-root"
         command: "sh"
         args: ["-c", "du -Shax / --exclude /proc | sort -rh | head -20"]
+    # OpenEBS local PV inspection
+    - run:
+        collectorName: "openebs-local-pv-listing"
+        command: "sh"
+        args:
+          - -c
+          - |
+            echo "=== OpenEBS Local PV Directories ==="
+            ls -la /var/openebs/local/ 2>/dev/null || echo "/var/openebs/local/ not found"
+            echo ""
+            echo "=== MinIO Metadata Files (format.json) ==="
+            find /var/openebs/local -path '*/.minio.sys/format.json' -ls 2>/dev/null || echo "No MinIO format.json files found"
+            echo ""
+            echo "=== PV Directory Sizes ==="
+            du -sh /var/openebs/local/*/ 2>/dev/null || echo "No PV directories found"
     - run:
         collectorName: "mount"
         command: "mount"
         args: ["-l"]
+    - run:
+        collectorName: "findmnt"
+        command: "findmnt"
+        args: ["--output", "SOURCE,TARGET,FSTYPE,OPTIONS,PROPAGATION", "--raw"]
     - run:
         collectorName: "vmstat"
         command: "vmstat"
@@ -907,3 +1038,124 @@ spec:
               message: Package {{ .Name }} is installed. This tool can interfere with kubernetes operation.
           - pass:
               message: Package {{ .Name }} is not installed
+    - textAnalyze:
+        checkName: "EXT4 Filesystem Errors"
+        fileName: host-collectors/run-host/journalctl-dmesg.txt
+        regex: 'EXT4-fs error|Buffer I/O error on dev'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "EXT4 filesystem errors detected in kernel logs. This may indicate disk corruption or hardware issues that can cause volumes to be remounted read-only. Check dmesg output for affected devices and timestamps."
+          - pass:
+              when: "false"
+              message: "No EXT4 filesystem errors detected in kernel logs"
+    - textAnalyze:
+        checkName: "Filesystem Remounted Read-Only"
+        fileName: host-collectors/run-host/journalctl-dmesg.txt
+        regex: 'Remounting filesystem read-only'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "A filesystem was remounted read-only due to errors. This can cause application failures such as MinIO being unable to read format.json. Check dmesg for the affected mount point and run fsck on the underlying device."
+          - pass:
+              when: "false"
+              message: "No filesystem read-only remount events detected"
+    - textAnalyze:
+        checkName: "Kubelet Read-Only Filesystem Errors"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: '(?i)read-only file system'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet encountered read-only filesystem errors. This may indicate the underlying storage was remounted read-only due to disk errors. Check dmesg and mount output for affected volumes."
+          - pass:
+              when: "false"
+              message: "No read-only filesystem errors found in kubelet logs"
+    - textAnalyze:
+        checkName: "Kubelet Orphaned Pod Volume Cleanup Failures"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: 'orphaned pod.*found|failed to remove.*read-only'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet failed to clean up orphaned pod volumes, possibly due to a read-only filesystem. Check kubelet logs for affected pods and the mount state of the underlying storage."
+          - pass:
+              when: "false"
+              message: "No orphaned pod volume cleanup failures detected"
+    - textAnalyze:
+        checkName: "Kubelet TLS Handshake Failures"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: 'tls: bad certificate|tls: failed to verify|remote error: tls'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet TLS handshake failures detected. The kubelet is rejecting connections due to certificate trust issues. This typically means the API server's kubelet-client cert was renewed but the kubelet still trusts the old CA, or the kubelet's serving cert is not trusted by the API server. Check /var/lib/kubelet/config.yaml for the clientCAFile setting and compare with /etc/kubernetes/pki/ca.crt."
+          - pass:
+              when: "false"
+              message: "No TLS handshake failures found in kubelet logs"
+    - textAnalyze:
+        checkName: "Kubelet Authentication Failures"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: 'Unable to authenticate the request|Unauthorized|401 Unauthorized'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet authentication failures detected. The kubelet cannot authenticate to the API server, likely due to an expired or invalid client certificate. Check kubelet client cert at /var/lib/kubelet/pki/kubelet-client-current.pem and ensure it is valid. If expired, remove the stale cert and restart kubelet to trigger re-bootstrap."
+          - pass:
+              when: "false"
+              message: "No kubelet authentication failures detected"
+    - textAnalyze:
+        checkName: "Kubelet Webhook Authorization Forbidden"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: 'Forbidden.*nodes.*proxy|Forbidden.*subresource.*proxy|status 403'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet is returning Forbidden for API server proxy requests (kubectl exec/logs). The API server authenticates to the kubelet using apiserver-kubelet-client cert, but the kubelet's webhook authorization is denying access. Check that the kubeadm:cluster-admins ClusterRoleBinding exists and binds to cluster-admin. Run: kubectl get clusterrolebinding kubeadm:cluster-admins -o yaml"
+          - pass:
+              when: "false"
+              message: "No kubelet webhook authorization failures detected"
+    - textAnalyze:
+        checkName: "Kubelet x509 Certificate Errors"
+        fileName: host-collectors/run-host/journalctl-kubelet.txt
+        regex: 'x509: certificate has expired|x509: certificate signed by unknown authority|certificate is not valid'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "Kubelet is reporting x509 certificate errors. This can cause kubectl exec and kubectl logs to fail, which breaks kURL upgrade operations (e.g., reading MinIO format.json). Check certificate expiration with 'kubeadm certs check-expiration' and kubelet client cert at /var/lib/kubelet/pki/."
+          - pass:
+              when: "false"
+              message: "No x509 certificate errors found in kubelet logs"
+    - textAnalyze:
+        checkName: "Kubernetes Certificates Expired"
+        fileName: host-collectors/run-host/k8s-cert-expiration-check.txt
+        regex: '^EXPIRED:'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "One or more Kubernetes certificates have expired. Run 'kubeadm certs check-expiration' to identify affected certificates and 'kubeadm certs renew all' to renew them. Expired certificates will prevent API server, etcd, and other control plane components from communicating."
+          - pass:
+              when: "false"
+              message: "No expired Kubernetes certificates found"
+    - textAnalyze:
+        checkName: "Kubernetes Certificates Expiring Soon"
+        fileName: host-collectors/run-host/k8s-cert-expiration-check.txt
+        regex: '^EXPIRING_SOON:'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "One or more Kubernetes certificates will expire within 30 days. Run 'kubeadm certs renew all' to renew them before they expire and cause cluster communication failures."
+          - pass:
+              when: "false"
+              message: "No Kubernetes certificates expiring within 30 days"
+    - textAnalyze:
+        checkName: "Kubeadm Certificate Expiration Report"
+        fileName: host-collectors/run-host/kubeadm-certs-expiration.txt
+        regex: '!!MISSING|EXPIRED|invalid'
+        outcomes:
+          - fail:
+              when: "true"
+              message: "kubeadm reports expired, invalid, or missing certificates. Run 'kubeadm certs check-expiration' for details and 'kubeadm certs renew all' to renew."
+          - pass:
+              when: "false"
+              message: "kubeadm reports all certificates are valid"
