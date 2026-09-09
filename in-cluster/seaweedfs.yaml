@@ -1,0 +1,231 @@
+apiVersion: troubleshoot.sh/v1beta2
+kind: SupportBundle
+metadata:
+  name: seaweedfs
+spec:
+  uri: https://raw.githubusercontent.com/replicatedhq/troubleshoot-specs/main/in-cluster/seaweedfs.yaml
+  collectors:
+    # -------------------------------------------------------------------------
+    # Cluster-wide resources and metrics
+    # -------------------------------------------------------------------------
+    - clusterInfo: {}
+    - clusterResources: {}
+    - nodeMetrics: {}
+
+    # -------------------------------------------------------------------------
+    # SeaweedFS namespace logs
+    # -------------------------------------------------------------------------
+    - logs:
+        collectorName: seaweedfs-master-logs
+        namespace: seaweedfs
+        name: seaweedfs/master
+        selector:
+          - app.kubernetes.io/component=master
+    - logs:
+        collectorName: seaweedfs-filer-logs
+        namespace: seaweedfs
+        name: seaweedfs/filer
+        selector:
+          - app.kubernetes.io/component=filer
+    - logs:
+        collectorName: seaweedfs-volume-logs
+        namespace: seaweedfs
+        name: seaweedfs/volume
+        selector:
+          - app.kubernetes.io/component=volume
+    - logs:
+        collectorName: seaweedfs-s3-logs
+        namespace: seaweedfs
+        name: seaweedfs/s3
+        selector:
+          - app.kubernetes.io/component=s3
+
+    # -------------------------------------------------------------------------
+    # Registry and KOTS/rqlite logs (relevant to object-store health)
+    # -------------------------------------------------------------------------
+    - logs:
+        collectorName: registry-logs
+        namespace: registry
+        name: registry/registry
+    - logs:
+        collectorName: kotsadm-rqlite-logs
+        namespace: kotsadm
+        name: kotsadm/rqlite
+        selector:
+          - app=kotsadm-rqlite
+    - logs:
+        collectorName: kotsadm-logs
+        namespace: kotsadm
+        name: kotsadm/kotsadm
+        selector:
+          - app=kotsadm
+
+    # -------------------------------------------------------------------------
+    # OpenEBS logs (localpv provisioner, cStor, etc.)
+    # -------------------------------------------------------------------------
+    - logs:
+        collectorName: openebs-logs
+        namespace: openebs
+        name: openebs/logs
+
+    # -------------------------------------------------------------------------
+    # SeaweedFS master diagnostics (topology, volumes, collections, S3 buckets)
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: seaweedfs-master-topology
+        namespace: seaweedfs
+        selector:
+          - app.kubernetes.io/component=master
+        container: seaweedfs
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== cluster.check ==="
+            printf '%s\n' 'cluster.check' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== volume.list ==="
+            printf '%s\n' 'volume.list' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== collection.list ==="
+            printf '%s\n' 'collection.list' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== s3.bucket.list ==="
+            printf '%s\n' 's3.bucket.list' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== fs.ls / ==="
+            printf '%s\n' 'fs.ls /' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== fs.ls /buckets ==="
+            printf '%s\n' 'fs.ls /buckets' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== fs.du / ==="
+            printf '%s\n' 'fs.du /' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+            echo "=== fs.du /buckets ==="
+            printf '%s\n' 'fs.du /buckets' | weed shell -master=seaweedfs-master:9333 -filer=seaweedfs-filer:8888
+        timeout: 120s
+
+    # -------------------------------------------------------------------------
+    # SeaweedFS volume server disk usage (data volumes are PVC-backed)
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: seaweedfs-volume-disk-usage
+        namespace: seaweedfs
+        selector:
+          - app.kubernetes.io/component=volume
+        container: seaweedfs
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== mounts ==="
+            mount
+            echo "=== df -h ==="
+            df -h
+            echo "=== /data disk usage ==="
+            du -sh /data* 2>/dev/null | sort -rh | head -30 || true
+            echo "=== find top-level data dirs ==="
+            ls -la / 2>/dev/null | grep -E 'data|seaweed' || true
+        timeout: 60s
+
+    # -------------------------------------------------------------------------
+    # SeaweedFS filer disk usage and filer data layout
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: seaweedfs-filer-disk-usage
+        namespace: seaweedfs
+        selector:
+          - app.kubernetes.io/component=filer
+        container: seaweedfs
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== mounts ==="
+            mount
+            echo "=== df -h ==="
+            df -h
+            echo "=== /data disk usage ==="
+            du -sh /data* 2>/dev/null | sort -rh | head -30 || true
+            echo "=== /logs disk usage ==="
+            du -sh /logs* 2>/dev/null | sort -rh | head -30 || true
+        timeout: 60s
+
+    # -------------------------------------------------------------------------
+    # rqlite status and disk usage (KOTS filestore on EC)
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: kotsadm-rqlite-status
+        namespace: kotsadm
+        selector:
+          - app=kotsadm-rqlite
+        container: rqlite
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== rqlite /status ==="
+            wget -q -T 5 http://localhost:4001/status?pretty -O- 2>/dev/null || curl -s http://localhost:4001/status?pretty 2>/dev/null || true
+            echo "=== rqlite /nodes ==="
+            wget -q -T 5 http://localhost:4001/nodes?pretty -O- 2>/dev/null || curl -s http://localhost:4001/nodes?pretty 2>/dev/null || true
+            echo "=== /rqlite/file disk usage ==="
+            du -sh /rqlite/file 2>/dev/null || true
+        timeout: 30s
+
+    # -------------------------------------------------------------------------
+    # Registry pod: inspect local storage and config
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: registry-config-and-storage
+        namespace: registry
+        selector:
+          - app=docker-registry
+        container: registry
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== mounts ==="
+            mount
+            echo "=== df -h ==="
+            df -h
+            echo "=== /var/lib/registry usage ==="
+            du -sh /var/lib/registry 2>/dev/null || true
+            echo "=== registry config ==="
+            cat /etc/docker/registry/config.yml 2>/dev/null || true
+        timeout: 30s
+
+    # -------------------------------------------------------------------------
+    # kotsadm: filestore selection and deployment env (helps confirm S3 vs rqlite)
+    # -------------------------------------------------------------------------
+    - exec:
+        collectorName: kotsadm-filestore-env
+        namespace: kotsadm
+        selector:
+          - app=kotsadm
+        container: kotsadm
+        command: ["sh", "-c"]
+        args:
+          - |
+            set +e
+            echo "=== kotsadm env (filestore-relevant) ==="
+            env | grep -iE 'S3|KOTSADM|RQLITE|DATABASE' | sort || true
+            echo "=== /kotsadmdata presence ==="
+            ls -ld /kotsadmdata 2>/dev/null || echo "no /kotsadmdata mount"
+            echo "=== df -h ==="
+            df -h
+        timeout: 30s
+  analyzers:
+    - nodeMetrics:
+        checkName: PVC storage usage
+        outcomes:
+          - fail:
+              when: "pvcUsedPercentage >= 80"
+              message: "There are PVCs using more than 80% of storage: {{ .PVC.ConcatenatedNames }}"
+          - warn:
+              when: "pvcUsedPercentage >= 70"
+              message: "There are PVCs using more than 70% of storage: {{ .PVC.ConcatenatedNames }}"
+          - pass:
+              message: "No PVCs are critically full"
+    - nodeResources:
+        checkName: Node disk pressure check
+        outcomes:
+          - fail:
+              when: "nodeCondition(DiskPressure) == True"
+              message: "One or more nodes report DiskPressure. Check the SeaweedFS volume logs and node disk usage."
+          - pass:
+              message: "No nodes report DiskPressure"
