@@ -32,13 +32,7 @@ spec:
         namespace: seaweedfs
         name: seaweedfs/volume
         selector:
-          - app.kubernetes.io/component=volume
-    - logs:
-        collectorName: seaweedfs-s3-logs
-        namespace: seaweedfs
-        name: seaweedfs/s3
-        selector:
-          - app.kubernetes.io/component=s3
+          - app.kubernetes.io/component=volume-data
 
     # -------------------------------------------------------------------------
     # Registry and KOTS/rqlite logs (relevant to object-store health)
@@ -106,7 +100,7 @@ spec:
         collectorName: seaweedfs-volume-disk-usage
         namespace: seaweedfs
         selector:
-          - app.kubernetes.io/component=volume
+          - app.kubernetes.io/component=volume-data
         container: seaweedfs
         command: ["sh", "-c"]
         args:
